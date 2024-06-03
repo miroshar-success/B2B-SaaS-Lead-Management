@@ -28,4 +28,4 @@ const LeadSchema = new mongoose.Schema({
   // Add other company fields as needed
 });
 
-module.exports = mongoose.model('Company', CompanySchema);
+module.exports = mongoose.model('lead', LeadSchema);
