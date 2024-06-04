@@ -66,13 +66,17 @@ const CSVUploadPage = () => {
 
   return (
     <div>
-      <h1>CSV Upload Dashboard</h1>
-      <input type="file" accept=".csv" onChange={handleFileChange} />
-      <div>
-        <h2>Field Mappings</h2>
-        {/* Add field mapping inputs here */}
-        <button onClick={handleUpload}>Upload CSV</button>
-      </div>
+      <form onSubmit={handleUpload}>
+        <label>
+          CSV Upload Dashboard
+          <input type="file" accept=".csv" onChange={handleFileChange} />
+        </label>
+        <div>
+          <h2>Field Mappings</h2>
+          {/* Add field mapping inputs here */}
+          <button>Upload CSV</button>
+        </div>
+      </form>
     </div>
   );
 };
