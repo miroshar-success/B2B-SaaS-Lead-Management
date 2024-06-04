@@ -96,7 +96,7 @@ const Login: React.FC<CardProps> = () => {
                 Keep me signed in
               </label>
               <a href="#" className="text-blue-600 hover:text-blue-800 transition-colors duration-300 mb-2">
-                Forgot your password? Reset it Here
+                Forgot your password?
               </a>
             </div>
           )
