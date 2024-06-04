@@ -24,6 +24,7 @@ const CompanySchema = new mongoose.Schema({
   latestFundingAmount: Number,
   lastRaisedAt: Number,
   // Add other company fields as needed
-});
+},
+{ timestamps: true });
 
 module.exports = mongoose.model('Company', CompanySchema);
