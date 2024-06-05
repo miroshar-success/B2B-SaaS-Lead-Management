@@ -3,7 +3,7 @@ const router = express.Router();
 const userController = require('../controllers/user.controller');
 
 // Create a new user
-router.post('/', userController.create);
+router.post('/register', userController.create);
 
 // User login
 router.post('/login', userController.login);
@@ -11,16 +11,19 @@ router.post('/login', userController.login);
 // User logout
 router.post('/logout', userController.logout);
 
-// Retrieve all users
-router.get('/', userController.authenticate, userController.findAll);
+// Retrieve all users (admin or super_admin only)
+router.get('/', userController.authenticate, userController.authorize('admin', 'super_admin'), userController.findAll);
 
-// Retrieve a single user by ID
-router.get('/:id', userController.authenticate, userController.findOne);
+// Retrieve a single user by ID (admin or super_admin only)
+router.get('/:id', userController.authenticate, userController.authorize('admin', 'super_admin'), userController.findOne);
 
-// Update a user by ID
-router.put('/:id', userController.authenticate, userController.update);
+// Update a user by ID (admin or super_admin only)
+router.put('/:id', userController.authenticate, userController.authorize('admin', 'super_admin'), userController.update);
 
-// Delete a user by ID
-router.delete('/:id', userController.authenticate, userController.delete);
+// Update user role (admin or super_admin only)
+router.put('/:id/role', userController.authenticate, userController.authorize('admin', 'super_admin'), userController.updateRole);
+
+// Delete a user by ID (admin or super_admin only)
+router.delete('/:id', userController.authenticate, userController.authorize('admin', 'super_admin'), userController.delete);
 
 module.exports = router;

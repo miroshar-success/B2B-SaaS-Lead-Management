@@ -8,7 +8,8 @@ exports.create = async (req, res) => {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
     const user = new User({
       email: req.body.email,
-      password: hashedPassword
+      password: hashedPassword,
+      role: 'user' // Default role
     });
 
     const savedUser = await user.save();
@@ -27,11 +28,12 @@ exports.login = async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(req.body.password, user.password);
+
     if (!isMatch) {
-      return res.status(400).send({ message: "Invalid credentials" });
+      return res.status(400).send({ message: "Invalid credentials, omooo" });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
 
     res.status(200).send({ message: "Login successful" });
@@ -59,6 +61,30 @@ exports.authenticate = (req, res, next) => {
     next();
   } catch (err) {
     res.status(400).send({ message: 'Invalid token.' });
+  }
+};
+
+// Middleware to check roles
+exports.authorize = (...roles) => {
+  return (req, res, next) => {
+    console.log(req.user.role);
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).send({ message: 'Access denied.' });
+    }
+    next();
+  };
+};
+
+// Update user role
+exports.updateRole = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, { role: req.body.role }, { new: true });
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+    res.status(200).send(user);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
   }
 };
 
