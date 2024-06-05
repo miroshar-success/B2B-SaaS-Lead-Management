@@ -1,4 +1,4 @@
-const Company = require('./models/company.model');
+const Company = require('../models/company.model');
 
 // Create a new company
 exports.create = (req, res) => {

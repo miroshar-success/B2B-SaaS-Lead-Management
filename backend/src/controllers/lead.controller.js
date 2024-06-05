@@ -1,4 +1,4 @@
-const Lead = require('./models/lead.model');
+const Lead = require('../models/lead.model');
 
 // Create a new lead
 exports.create = (req, res) => {
@@ -8,6 +8,9 @@ exports.create = (req, res) => {
 // Retrieve all leads
 exports.findAll = (req, res) => {
   // Handle retrieving all leads logic
+  res.status(200).json({
+    message: "welcome"
+  })
 };
 
 // Retrieve a single lead
