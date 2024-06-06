@@ -5,11 +5,23 @@ import SideBar from '@/layout/SideBar';
 import NavBar from '@/layout/Nav';
 import UserManagementPage from '../../components/user-management';
 import CSVUploadPage from '../../components/csv-upload';
-import { useState } from 'react';
+import { useState, MouseEvent } from 'react';
 
 const Admin = () => {
 
     const [ isDashboard, setIsDashboard ] = useState<boolean>(true);
+    const [ active, setActive] = useState<String>('dashboard');
+
+    const handleClickDashboard = ( e: MouseEvent<HTMLButtonElement | HTMLLinkElement> ) => {
+      e.preventDefault();
+      setIsDashboard(true);
+      setActive('dashboard')
+    }
+    const handleClickUserManagement = ( e: MouseEvent<HTMLButtonElement | HTMLLinkElement> ) => {
+      e.preventDefault();
+      setIsDashboard(false);
+      setActive('usermanagement')
+    }
 
   return (
     <>
@@ -19,8 +31,8 @@ const Admin = () => {
         <div className='pl-[14em] pt-[2em]'>
           <div>
               <div className='flex justify-around items-center pb-[2em]'>
-                  <button onClick={() => setIsDashboard(true)} className='border'>Dashboard</button>
-                  <button onClick={() => setIsDashboard(false)} className='border'>User Management</button>
+                  <button onClick={ e => handleClickDashboard(e) } className={`${ active === 'dashboard' ? 'border-b-2' : ''} px-20 py-2`}>Dashboard</button>
+                  <button onClick={ e => handleClickUserManagement(e) } className={`${active === 'usermanagement' ?'border-b-2': ''} px-20 py-2`}>User Management</button>
               </div>
           </div>
           <>
