@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
-// In the file where you're using AuthContext
-
-import { AuthProvider } from '../context/authContext'; // Assuming the path is correct
-
-// import { Inter } from "next/font/google";
+// import { AuthProvider } from '../context/authContext'; // Assuming the path is correct
 import "./globals.css";
-
-// const inter = Inter({ subsets: ["latin"] });
+import AuthProvider from '../context/authContext';
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -15,12 +10,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body >
+      <body>
         <AuthProvider>
           {children}
         </AuthProvider>
