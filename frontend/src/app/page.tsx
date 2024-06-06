@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/authContext';
-import axiosInstance from '@/utils/axios';
+// import axiosInstance from '@/utils/axios';
 import axios from 'axios';
 import { User } from '@/context/authContext2';
 // import { FaGoogle, FaMicrosoft } from 'react-icons/fa';
