@@ -30,13 +30,18 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(req.body.password, user.password);
 
     if (!isMatch) {
-      return res.status(400).send({ message: "Invalid credentials, omooo" });
+      return res.status(400).send({ message: "Invalid credentials" });
     }
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
 
-    res.status(200).send({ message: "Login successful" });
+    const currentUser = {
+      email: req.body.email,
+      role: user.role
+    }
+
+    res.status(200).send(currentUser);
   } catch (error) {
     res.status(500).send({ message: error.message });
   }

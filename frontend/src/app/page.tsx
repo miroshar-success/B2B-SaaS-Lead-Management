@@ -1,6 +1,10 @@
 "use client"
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/authContext';
+import axiosInstance from '@/utils/axios';
+import axios from 'axios';
+import { User } from '@/context/authContext2';
 // import { FaGoogle, FaMicrosoft } from 'react-icons/fa';
 
 interface CardProps {}
@@ -11,6 +15,7 @@ const Login: React.FC<CardProps> = () => {
   const [password, setPassword] = useState('');
   const [confirmpassword, setConfirmPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const { user, setUser, isLoggedIn, setIsLoggedIn } = useAuth();
 
 
   const router = useRouter();
@@ -19,10 +24,21 @@ const Login: React.FC<CardProps> = () => {
     setShowLogin(!showLogin);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Add form validation and submission logic here
     if (!isSignUp) {
+      try {
+        const res = await axios.post('http://127.0.0.1:5000/api/users/login', {
+            "email": email,
+            "password": password,
+        })
+        const userData:User = res.data; // Extract the user data from the response
+        setUser(userData);
+        setIsLoggedIn(true);
+      } catch (error) {
+        console.error(error);
+      }
       router.push('/home'); // Navigate to the login page
     } else {
       // router.push('/'); // Navigate to the sign up page

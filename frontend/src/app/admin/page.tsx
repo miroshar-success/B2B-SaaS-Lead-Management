@@ -1,6 +1,5 @@
 // pages/index.js
 "use client"
-import Link from 'next/link';
 import SideBar from '@/layout/SideBar';
 import NavBar from '@/layout/Nav';
 import UserManagementPage from '../../components/user-management';

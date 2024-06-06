@@ -1,5 +1,6 @@
-import React, {  useContext, useState } from 'react';
-import {  User, AuthContext } from './authContext2';
+'use client'
+import React, {  createContext, useContext, useState } from 'react';
+import {  AuthContextType, User } from './authContext2';
 
 
 type ContainerProps = {
@@ -7,6 +8,8 @@ type ContainerProps = {
 }
 
 // export const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | null>(null);
+
 
 const AuthProvider = (props: ContainerProps) => {
   
@@ -25,4 +28,12 @@ export default AuthProvider;
 
 
 // Custom hook to consume the AuthContext
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+// export const useAuth = useContext(AuthContext);
