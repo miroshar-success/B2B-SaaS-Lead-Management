@@ -5,9 +5,14 @@ import { GoHome } from "react-icons/go";
 import { FaRegUserCircle } from "react-icons/fa";
 import { TbDoorExit } from "react-icons/tb";
 import { MouseEvent, useState } from 'react';
+import { useAuth } from '@/context/authContext';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
 const SideBar = () => {
   const [ isActive, setIsActive ] = useState<String>('home');
+  const { setUser } = useAuth();
+  const router = useRouter();
 
   const handleClickHome = ( e: MouseEvent<HTMLButtonElement | HTMLLinkElement> ) => {
     e.preventDefault();
@@ -17,9 +22,17 @@ const SideBar = () => {
     e.preventDefault();
     setIsActive('admin');
   }
-  const handleClickLogout = ( e: MouseEvent<HTMLButtonElement | HTMLLinkElement> ) => {
+  const handleClickLogout = async ( e: MouseEvent<HTMLButtonElement | HTMLLinkElement> ) => {
     e.preventDefault();
-    setIsActive('logout')
+    try {
+      const res = await axios.post('http://127.0.0.1:5000/api/users/logout');
+      console.log(res.data.message);
+      setUser(null);
+      setIsActive('logout');
+      router.push('/'); // Navigate to the login page
+    } catch (error) {
+      console.error(error);
+    }
   }
 
 
@@ -39,10 +52,10 @@ const SideBar = () => {
           </Link>
         </button>
         <button onClick={e => handleClickLogout(e)}>
-          <Link href="/" className={`flex gap-6 items-center justify-start px-10 py-2 rounded-lg ${ isActive === 'logout' ? 'bg-violet-400 text-white' : 'text-violet-800'} hover:bg-violet-400 hover:text-white hover:scale-105 delay-75`}>
+          <div className={`flex gap-6 items-center justify-start px-10 py-2 rounded-lg ${ isActive === 'logout' ? 'bg-violet-400 text-white' : 'text-violet-800'} hover:bg-violet-400 hover:text-white hover:scale-105 delay-75`}>
             <TbDoorExit size={22} />
             Logout
-          </Link>
+          </div>
         </button>
     </div>
   );

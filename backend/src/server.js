@@ -4,6 +4,12 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
+const multer = require('multer');
+const csv = require('csv-parser');
+const fs = require('fs');
+const path = require('path');
+
+const upload = multer({ dest: 'uploads/' });
 // const dbConfig = require('./config/db.config');
 
 const app = express();
@@ -11,7 +17,10 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000', // or your frontend URL
+  credentials: true,
+}));
 app.use(cookieParser()); 
 
 // MongoDB connection
@@ -35,6 +44,21 @@ const companyRoutes = require('./routes/company.routes');
 const leadRoutes = require('./routes/lead.routes');
 const usersRouter = require('./routes/user.routes');
 
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  const results = [];
+
+  fs.createReadStream(req.file.path)
+    .pipe(csv())
+    .on('data', (data) => results.push(data))
+    .on('end', () => {
+      fs.unlinkSync(req.file.path); // Remove the file after processing
+      res.json(results);
+    })
+    .on('error', (error) => {
+      console.error('Error processing CSV:', error);
+      res.status(500).send({ message: 'Error processing CSV' });
+    });
+});
 
 app.use('/api/companies', companyRoutes);
 app.use('/api/leads', leadRoutes);

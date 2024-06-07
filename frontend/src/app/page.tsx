@@ -13,12 +13,17 @@ const Login: React.FC<CardProps> = () => {
   const [showLogin, setShowLogin] = useState<boolean>(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [confirmpassword, setConfirmPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
-  const { user, setUser, isLoggedIn, setIsLoggedIn } = useAuth();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<String>('');
+  const { user, setUser, isLoggedIn, setIsLoggedIn, login } = useAuth();
 
 
   const router = useRouter();
+
+  const incorrectPassword = confirmpassword !== newPassword;
 
   const toggleForm = () => {
     setShowLogin(!showLogin);
@@ -29,20 +34,30 @@ const Login: React.FC<CardProps> = () => {
     // Add form validation and submission logic here
     if (!isSignUp) {
       try {
-        const res = await axios.post('http://127.0.0.1:5000/api/users/login', {
-            "email": email,
-            "password": password,
-        })
-        const userData:User = res.data; // Extract the user data from the response
-        setUser(userData);
+        // setIsLoading(true);
+        // const res = await axios.post('http://127.0.0.1:5000/api/users/login', {
+        //     "email": email,
+        //     "password": password,
+        // }, {
+        //   withCredentials: true,
+        // })
+        // const userData:User = res.data; // Extract the user data from the response
+        // setUser(userData);
+        await login({email, password});
         setIsLoggedIn(true);
-      } catch (error) {
-        console.error(error);
+        router.push('/home'); // Navigate to the login page
+        } catch (error) {
+          console.error(error);
+          setError(`${error}`);
+        }
+        setIsLoading(false);
+      } else {
+            // router.push('/'); // Navigate to the sign up page
+      if(incorrectPassword){
+        setError('Password does not match. Please try again');
+      } else {
+        setIsSignUp(!isSignUp);
       }
-      router.push('/home'); // Navigate to the login page
-    } else {
-      // router.push('/'); // Navigate to the sign up page
-      setIsSignUp(!isSignUp);
     }
   };
 
@@ -79,29 +94,47 @@ const Login: React.FC<CardProps> = () => {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full mb-4 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <input
+          {/* <input
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full mb-4 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+            className={`w-full mb-4 px-4 py-2 rounded-md border ${incorrectPassword ? 'border-red-300' :'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+          /> */}
           {
-            isSignUp && (
+            isSignUp ? (<>
+              <input
+                type="password"
+                placeholder="Password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className={`w-full mb-4 px-4 py-2 rounded-md border ${incorrectPassword ? 'border-red-300' :'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              />
               <input
               type="password"
               placeholder="Confirm Password"
-              value={password}
+              value={confirmpassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full mb-4 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            )
+              className={`w-full mb-4 px-4 py-2 rounded-md border ${incorrectPassword ? 'border-red-300' :'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              />
+              </>
+            ): (<>
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={`w-full mb-4 px-4 py-2 rounded-md border ${incorrectPassword ? 'border-red-300' :'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              />
+            </>)
           }
+          {error !== '' && <span className='text-xs text-red-500'>{error}</span>}
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors duration-300"
           >
-            { isSignUp ? 'Sign Up' : 'Log In'}
+            {/* { isSignUp && !isLoading ? 'Sign Up' : 'Log In'} */}
+            { isLoading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Log In'}
           </button>
         </form>
         {

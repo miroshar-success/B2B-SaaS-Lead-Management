@@ -4,12 +4,47 @@ import SideBar from '@/layout/SideBar';
 import NavBar from '@/layout/Nav';
 import UserManagementPage from '../../components/user-management';
 import CSVUploadPage from '../../components/csv-upload';
-import { useState, MouseEvent } from 'react';
+import { useState, MouseEvent, useEffect } from 'react';
+import { useAuth } from '@/context/authContext';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import { User } from '@/context/authContext2';
 
 const Admin = () => {
 
     const [ isDashboard, setIsDashboard ] = useState<boolean>(true);
     const [ active, setActive] = useState<String>('dashboard');
+    const [users, setUsers] = useState<User[]>([]);
+    const [error, setError] = useState<string | null>(null);
+    const { user, setUser, isLoggedIn, setIsLoggedIn } = useAuth();
+    const router = useRouter();
+
+
+
+
+    useEffect(() => {
+      
+      if (!isLoggedIn && !user ) {
+        router.push('/');
+        return;
+      }
+  
+      fetchUsers();
+    }, [user, isLoggedIn]);
+
+    const fetchUsers = async () => {
+      try {
+        // console.log(isLoggedIn);
+        const response = await axios.get('http://127.0.0.1:5000/api/users/', { withCredentials: true});
+        const data =  response.data;
+        // console.log(data); 
+        setUsers(data);
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        setError(error.response?.data?.message || 'Failed to fetch users');
+      }
+    };
 
     const handleClickDashboard = ( e: MouseEvent<HTMLButtonElement | HTMLLinkElement> ) => {
       e.preventDefault();
@@ -37,7 +72,7 @@ const Admin = () => {
           <>
               {
                 !isDashboard ? (
-                  <UserManagementPage />
+                  <UserManagementPage users={users} />
                 ) : (
                   <CSVUploadPage />
                 )

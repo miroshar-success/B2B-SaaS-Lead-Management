@@ -1,5 +1,6 @@
 // pages/admin/csv-upload.tsx
 import { useState } from 'react';
+import Papa from 'papaparse';
 
 interface Lead {
   firstName: string;
@@ -11,16 +12,9 @@ interface Lead {
   status: 'active' | 'inactive';
 }
 
-interface Company {
-  name: string;
-  linkedInUrl: string;
-  companyId: string;
-  // Add other company fields as needed
-}
-
 const CSVUploadPage = () => {
   const [csvFile, setCSVFile] = useState<File | null>(null);
-  const [fieldMappings, setFieldMappings] = useState<{ [key: string]: string }>({});
+  const [leads, setLeads] = useState<Lead[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -28,55 +22,72 @@ const CSVUploadPage = () => {
     }
   };
 
-  const handleFieldMapping = (csvField: string, databaseField: string) => {
-    setFieldMappings((prevMappings) => ({
-      ...prevMappings,
-      [csvField]: databaseField,
-    }));
-  };
-
-  const handleUpload = async () => {
+  const handleUpload = () => {
     if (!csvFile) return;
 
-    // Create a FormData object and append the CSV file
-    const formData = new FormData();
-    formData.append('csvFile', csvFile);
-
-    // Append the field mappings
-    for (const [csvField, databaseField] of Object.entries(fieldMappings)) {
-      formData.append(`fieldMappings[${csvField}]`, databaseField);
-    }
-
-    try {
-      // Send a POST request to your backend API with the FormData
-      const response = await fetch('/api/upload-csv', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        console.log('CSV uploaded successfully');
-      } else {
-        console.error('Error uploading CSV');
-      }
-    } catch (error) {
-      console.error('Error uploading CSV:', error);
-    }
+    Papa.parse(csvFile, {
+      header: true,
+      complete: (results) => {
+        const data = results.data as any[];
+        const mappedLeads: Lead[] = data.map((row) => ({
+          firstName: row['Full name']?.split(' ')[0] || '',
+          lastName: row['Full name']?.split(' ')[1] || '',
+          email: row['Emails'] || '',
+          phone: row['Mobile'] || '',
+          companyId: row['Company Name'] || '',
+          linkedInUrl: row['LinkedIn URL'] || '',
+          status: 'active', // Default status
+        }));
+        setLeads(mappedLeads);
+      },
+    });
   };
 
   return (
     <div>
-      <form onSubmit={handleUpload}>
+      <form onSubmit={(e) => e.preventDefault()}>
         <label>
           CSV Upload Dashboard
           <input type="file" accept=".csv" onChange={handleFileChange} />
         </label>
         <div>
-          <h2>Field Mappings</h2>
-          {/* Add field mapping inputs here */}
-          <button>Upload CSV</button>
+          <button type="button" onClick={handleUpload}>
+            Upload CSV
+          </button>
         </div>
       </form>
+
+      <div>
+        <h2>Leads</h2>
+        {leads.length > 0 && (
+          <table>
+            <thead>
+              <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Company</th>
+                <th>LinkedIn URL</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leads.map((lead, index) => (
+                <tr key={index}>
+                  <td>{lead.firstName}</td>
+                  <td>{lead.lastName}</td>
+                  <td>{lead.email}</td>
+                  <td>{lead.phone}</td>
+                  <td>{lead.companyId}</td>
+                  <td>{lead.linkedInUrl}</td>
+                  <td>{lead.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 };
