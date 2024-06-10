@@ -36,18 +36,20 @@ const LeadCard: React.FC<LeadCardProps> = ({ onDelete, onUpdate, ...lead }) => {
         <p>LinkedIn: {lead.linkedInUrl}</p>
         <p>Status: {lead.status}</p>
         <p>Trust Score: {lead.trustScore}</p>
-        <button
-          onClick={() => setIsEditing(true)}
-          className="px-4 py-2 bg-yellow-500 text-white rounded mr-2"
-        >
-          Edit
-        </button>
-        <button
-          onClick={() => setIsDeleteModalOpen(true)}
-          className="px-4 py-2 bg-red-500 text-white rounded"
-        >
-          Delete
-        </button>
+        <div className='my-3'>
+          <button
+            onClick={() => setIsEditing(true)}
+            className="px-4 py-2 bg-violet-400 text-white rounded mr-2"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => setIsDeleteModalOpen(true)}
+            className="px-4 py-2 border border-violet-400 text-violet-400 rounded"
+          >
+            Delete
+          </button>
+        </div>
       </div>
 
       <Modal
@@ -119,13 +121,13 @@ const LeadCard: React.FC<LeadCardProps> = ({ onDelete, onUpdate, ...lead }) => {
           </select>
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
+            className="px-4 py-2 bg-violet-400 text-white rounded mr-2"
           >
             Save
           </button>
           <button
             onClick={() => setIsEditing(false)}
-            className="px-4 py-2 bg-gray-500 text-white rounded"
+            className="px-4 py-2 border border-violet-400 text-violet-400 rounded"
           >
             Cancel
           </button>
