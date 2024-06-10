@@ -2,17 +2,18 @@
 import { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 
-
 export interface Lead {
+  linkedInUrl: string;
   firstName: string;
   lastName: string;
-  email?: string;
+  email: string;
   phone?: string;
   companyId: string;
-  linkedInUrl?: string;
+  companyName?: string;
+  website?: string;
   status: 'active' | 'inactive';
-  trustScore: number;
   lastUpdated: string;
+  trustScore: number;
 }
 
 const CSVUploadPage = () => {
@@ -21,6 +22,7 @@ const CSVUploadPage = () => {
   const [fieldMappings, setFieldMappings] = useState<{ [key: string]: string }>({});
   const [data, setData] = useState<any[]>([]);
   const [showMappings, setShowMappings] = useState(false);
+  const [summary, setSummary] = useState<{ created: number; updated: number; errors: number }>({ created: 0, updated: 0, errors: 0 });
 
   useEffect(() => {
     const storedLeads = localStorage.getItem('leads');
@@ -55,32 +57,61 @@ const CSVUploadPage = () => {
     setShowMappings(true);
   };
 
+  const calculateTrustScore = (lastUpdated: string): number => {
+    const today = new Date();
+    const updatedDate = new Date(lastUpdated);
+    const timeDiff = today.getTime() - updatedDate.getTime();
+    const daysDiff = timeDiff / (1000 * 3600 * 24);
+    return Math.round((1 - daysDiff / 365) * 100);
+  };
+
   const handleProcessData = () => {
+    let created = 0;
+    let updated = 0;
+    let errors = 0;
+
     const processedData = data.map((row) => {
-      return {
+      const newLead: Lead = {
         linkedInUrl: row[fieldMappings['linkedInUrl']],
         firstName: row[fieldMappings['firstName']],
         lastName: row[fieldMappings['lastName']],
         email: row[fieldMappings['email']],
+        phone: row[fieldMappings['phone']],
         companyId: row[fieldMappings['companyId']],
         companyName: row[fieldMappings['companyName']],
         website: row[fieldMappings['website']],
-        phone: row[fieldMappings['phone']],
         status: row[fieldMappings['linkedInUrl']] ? 'active' : 'inactive',
-        lastUpdated: row[fieldMappings['lastUpdated']],
-        trustScore: 0, // Temporary trust score, calculation can be added
+        lastUpdated: row[fieldMappings['Last Updated']],
+        trustScore: calculateTrustScore(row[fieldMappings['Last Updated']]),
       };
+
+      // Check if the lead already exists in local storage
+      const existingLeads = JSON.parse(localStorage.getItem('leads') || '[]');
+      const existingLead = existingLeads.find((lead: Lead) => lead.email === newLead.email || lead.linkedInUrl === newLead.linkedInUrl);
+
+      if (existingLead) {
+        // Update existing lead
+        Object.assign(existingLead, newLead);
+        updated++;
+      } else {
+        // Create new lead
+        existingLeads.push(newLead);
+        created++;
+      }
+
+      // Save updated leads back to local storage
+      localStorage.setItem('leads', JSON.stringify(existingLeads));
+      return newLead;
     });
 
+    setSummary({ created, updated, errors });
     console.log(processedData);
-    // Process data and save to local storage or send to backend
-    localStorage.setItem('leads', JSON.stringify(processedData));
   };
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">CSV Upload</h1>
-      <input type="file" accept=".csv" title='csv file' onChange={handleFileChange} className="mb-4" />
+      <input type="file" accept=".csv" title='CSV file' onChange={handleFileChange} className="mb-4" />
       <button onClick={handleUpload} className="bg-yellow-500 text-white py-2 px-4 rounded">Upload CSV</button>
 
       {showMappings && (
@@ -94,7 +125,7 @@ const CSVUploadPage = () => {
                 <select
                   onChange={(e) => handleFieldMapping(e.target.value, dbField)}
                   className="p-2 border border-gray-300 rounded"
-                  title='lead fields'
+                  title='lead dropdown'
                 >
                   <option value="">Select a field</option>
                   {csvHeaders.map((header) => (
@@ -115,7 +146,7 @@ const CSVUploadPage = () => {
                 <select
                   onChange={(e) => handleFieldMapping(e.target.value, dbField)}
                   className="p-2 border border-gray-300 rounded"
-                  title='company fields'
+                  title='company dropdown'
                 >
                   <option value="">Select a field</option>
                   {csvHeaders.map((header) => (
@@ -129,6 +160,13 @@ const CSVUploadPage = () => {
           </div>
 
           <button onClick={handleProcessData} className="bg-green-500 text-white py-2 px-4 rounded">Confirm</button>
+
+          <div className="mt-4">
+            <h2 className="text-xl font-bold mb-4">Summary</h2>
+            <p>Records Created: {summary.created}</p>
+            <p>Records Updated: {summary.updated}</p>
+            <p>Errors: {summary.errors}</p>
+          </div>
         </div>
       )}
     </div>
