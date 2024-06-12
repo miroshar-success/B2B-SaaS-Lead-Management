@@ -14,7 +14,7 @@ const UploadSummary = () => {
         <p className="mb-2"><strong>Errors:</strong> {errors}</p>
       </div>
       <button
-        onClick={() => router.push('/admin/csv-upload')}
+        onClick={() => router.push('/admin')}
         className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-blue-700"
       >
         Back to Upload
