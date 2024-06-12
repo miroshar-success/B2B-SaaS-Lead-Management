@@ -2,10 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/authContext';
-// import axiosInstance from '@/utils/axios';
-import axios from 'axios';
-import { User } from '@/context/authContext2';
-// import { FaGoogle, FaMicrosoft } from 'react-icons/fa';
+
 
 interface CardProps {}
 
@@ -34,15 +31,6 @@ const Login: React.FC<CardProps> = () => {
     // Add form validation and submission logic here
     if (!isSignUp) {
       try {
-        // setIsLoading(true);
-        // const res = await axios.post('http://127.0.0.1:5000/api/users/login', {
-        //     "email": email,
-        //     "password": password,
-        // }, {
-        //   withCredentials: true,
-        // })
-        // const userData:User = res.data; // Extract the user data from the response
-        // setUser(userData);
         await login({email, password});
         setIsLoggedIn(true);
         router.push('/home'); // Navigate to the login page
@@ -51,13 +39,17 @@ const Login: React.FC<CardProps> = () => {
           setError(`${error}`);
         }
         setIsLoading(false);
-      } else {
-            // router.push('/'); // Navigate to the sign up page
+    } else {
       if(incorrectPassword){
         setError('Password does not match. Please try again');
       } else {
-        await register({email, newPassword});
-        setIsSignUp(!isSignUp);
+        // console.log({email, newPassword})
+        try{
+          await register({email, newPassword});
+        } catch (error){
+          console.error(error);
+        }
+        // setIsSignUp(!isSignUp);
       }
     }
   };
