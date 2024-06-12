@@ -43,7 +43,7 @@ mongoose.connect(MONGODB_URI, {
 const companyRoutes = require('./routes/company.routes');
 const leadRoutes = require('./routes/lead.routes');
 const usersRouter = require('./routes/user.routes');
-const csvRouter = require('./routes/uploadCSV');
+const csvRouter = require('./routes/uploadCSVRoute');
 
 
 

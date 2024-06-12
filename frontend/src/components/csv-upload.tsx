@@ -1,7 +1,7 @@
-// components/csv-upload.tsx
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import Papa from 'papaparse';
 
 interface CSVRow {
   [key: string]: string;
@@ -16,17 +16,14 @@ const CSVUpload = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target?.result as string;
-        const csvRows = text.split('\n').map(row => row.split(',').reduce((acc, field, index) => {
-          acc[`field${index}`] = field;
-          return acc;
-        }, {} as CSVRow));
-        setCSVData(csvRows);
-        setCsvHeaders(Object.keys(csvRows[0]));
-      };
-      reader.readAsText(file);
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          setCSVData(results.data as CSVRow[]);
+          setCsvHeaders(results.meta.fields || []);
+        },
+      });
     }
   };
 
@@ -39,13 +36,13 @@ const CSVUpload = () => {
 
   const handleConfirm = async () => {
     try {
-      const response = await axios.post('http://127.0.0.1:5000/api/upload-csv', {
+      const response = await axios.post('http://localhost:5000/api/upload-csv', {
         csvData,
         fieldMappings,
       });
 
       const { recordsCreated, recordsUpdated, errors } = response.data;
-      router.push(`/upload-summary?recordsCreated=${recordsCreated}&recordsUpdated=${recordsUpdated}&errors=${errors}`);
+      router.push(`/admin/upload-summary?recordsCreated=${recordsCreated}&recordsUpdated=${recordsUpdated}&errors=${errors}`);
     } catch (error) {
       console.error('Error uploading CSV:', error);
     }
@@ -55,7 +52,7 @@ const CSVUpload = () => {
     <div className="container mx-auto p-4">
       <div className="bg-gray-100 p-6 rounded-lg shadow-lg">
         <h1 className="text-2xl font-bold mb-4">Upload CSV</h1>
-        <input type="file" accept=".csv" title='CSV upload' onChange={handleFileChange} className="mb-4" />
+        <input type="file" accept=".csv" title='csv title'  onChange={handleFileChange} className="mb-4" />
 
         <div className="mb-4">
           <h2 className="text-xl font-semibold">Lead Info:</h2>
