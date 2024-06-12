@@ -1,24 +1,34 @@
-// pages/admin/upload-summary.tsx
-import { useRouter } from 'next/router';
+// pages/upload-summary.tsx
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const UploadSummary = () => {
-  const router = useRouter();
-  const { recordsCreated, recordsUpdated, errors } = router.query;
+  const searchParams = useSearchParams();
+  const recordsCreated = searchParams.get('recordsCreated');
+  const recordsUpdated = searchParams.get('recordsUpdated');
+  const errors = searchParams.get('errors');
+  const [summary, setSummary] = useState({
+    recordsCreated: 0,
+    recordsUpdated: 0,
+    errors: 0,
+  });
+
+  useEffect(() => {
+    if (recordsCreated && recordsUpdated && errors) {
+      setSummary({
+        recordsCreated: parseInt(recordsCreated as string, 10),
+        recordsUpdated: parseInt(recordsUpdated as string, 10),
+        errors: parseInt(errors as string, 10),
+      });
+    }
+  }, [recordsCreated, recordsUpdated, errors]);
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Upload Summary</h1>
-      <div className="bg-white shadow-md rounded p-4">
-        <p className="mb-2"><strong>Records Created:</strong> {recordsCreated}</p>
-        <p className="mb-2"><strong>Records Updated:</strong> {recordsUpdated}</p>
-        <p className="mb-2"><strong>Errors:</strong> {errors}</p>
-      </div>
-      <button
-        onClick={() => router.push('/admin')}
-        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-blue-700"
-      >
-        Back to Upload
-      </button>
+      <p>Records Created: {summary.recordsCreated}</p>
+      <p>Records Updated: {summary.recordsUpdated}</p>
+      <p>Errors: {summary.errors}</p>
     </div>
   );
 };
