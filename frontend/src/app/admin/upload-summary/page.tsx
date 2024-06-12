@@ -1,5 +1,5 @@
 // pages/admin/upload-summary.tsx
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 
 const UploadSummary = () => {
   const router = useRouter();
