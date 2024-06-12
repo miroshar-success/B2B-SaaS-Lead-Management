@@ -43,23 +43,11 @@ mongoose.connect(MONGODB_URI, {
 const companyRoutes = require('./routes/company.routes');
 const leadRoutes = require('./routes/lead.routes');
 const usersRouter = require('./routes/user.routes');
+const csvRouter = require('./routes/uploadCSV');
 
-app.post('/api/upload', upload.single('file'), (req, res) => {
-  const results = [];
 
-  fs.createReadStream(req.file.path)
-    .pipe(csv())
-    .on('data', (data) => results.push(data))
-    .on('end', () => {
-      fs.unlinkSync(req.file.path); // Remove the file after processing
-      res.json(results);
-    })
-    .on('error', (error) => {
-      console.error('Error processing CSV:', error);
-      res.status(500).send({ message: 'Error processing CSV' });
-    });
-});
 
+app.use('/api', csvRouter);
 app.use('/api/companies', companyRoutes);
 app.use('/api/leads', leadRoutes);
 app.use('/api/users', usersRouter);

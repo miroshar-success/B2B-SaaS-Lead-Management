@@ -1,174 +1,139 @@
-// pages/admin/csv-upload.tsx
-import { useState, useEffect } from 'react';
-import Papa from 'papaparse';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+import * as Papa from 'papaparse';
 
-export interface Lead {
-  linkedInUrl: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string;
-  companyId: string;
-  companyName?: string;
-  website?: string;
-  status: 'active' | 'inactive';
-  lastUpdated: string;
-  trustScore: number;
+interface CSVRow {
+  [key: string]: string | undefined;
 }
 
 const CSVUploadPage = () => {
-  const [csvFile, setCSVFile] = useState<File | null>(null);
-  const [csvHeaders, setCSVHeaders] = useState<string[]>([]);
+  const [csvColumns, setCSVColumns] = useState<string[]>([]);
+  const [csvData, setCSVData] = useState<CSVRow[]>([]);
   const [fieldMappings, setFieldMappings] = useState<{ [key: string]: string }>({});
-  const [data, setData] = useState<any[]>([]);
-  const [showMappings, setShowMappings] = useState(false);
-  const [summary, setSummary] = useState<{ created: number; updated: number; errors: number }>({ created: 0, updated: 0, errors: 0 });
-
-  useEffect(() => {
-    const storedLeads = localStorage.getItem('leads');
-    if (storedLeads) {
-      setData(JSON.parse(storedLeads));
-    }
-  }, []);
+  const router = useRouter();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      setCSVFile(file);
-      Papa.parse(file, {
+      Papa.parse<CSVRow>(file, {
         header: true,
         complete: (results) => {
-          const headers = results.meta.fields as string[];
-          setCSVHeaders(headers);
-          setData(results.data);
+          const data = results.data;
+          if (data.length > 0) {
+            setCSVColumns(Object.keys(data[0]));
+            setCSVData(data);
+          }
         },
       });
     }
   };
 
-  const handleFieldMapping = (csvField: string, databaseField: string) => {
+  const handleFieldMapping = (databaseField: string, csvField: string) => {
     setFieldMappings((prevMappings) => ({
       ...prevMappings,
       [databaseField]: csvField,
     }));
   };
 
-  const handleUpload = () => {
-    setShowMappings(true);
+  const calculateTrustScore = (date: string) => {
+    const now = new Date();
+    const parsedDate = new Date(date);
+    const timeDifference = Math.abs(now.getTime() - parsedDate.getTime());
+    const daysDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
+    return Math.max(0, 100 - daysDifference); // Example calculation
   };
 
-  const calculateTrustScore = (lastUpdated: string): number => {
-    const today = new Date();
-    const updatedDate = new Date(lastUpdated);
-    const timeDiff = today.getTime() - updatedDate.getTime();
-    const daysDiff = timeDiff / (1000 * 3600 * 24);
-    return Math.round((1 - daysDiff / 365) * 100);
-  };
-
-  const handleProcessData = () => {
-    let created = 0;
-    let updated = 0;
-    let errors = 0;
-
-    const processedData = data.map((row) => {
-      const newLead: Lead = {
-        linkedInUrl: row[fieldMappings['linkedInUrl']],
-        firstName: row[fieldMappings['firstName']],
-        lastName: row[fieldMappings['lastName']],
-        email: row[fieldMappings['email']],
-        phone: row[fieldMappings['phone']],
-        companyId: row[fieldMappings['companyId']],
-        companyName: row[fieldMappings['companyName']],
-        website: row[fieldMappings['website']],
-        status: row[fieldMappings['linkedInUrl']] ? 'active' : 'inactive',
-        lastUpdated: row[fieldMappings['Last Updated']],
-        trustScore: calculateTrustScore(row[fieldMappings['Last Updated']]),
+  const handleUpload = async () => {
+    const processedData = csvData.map((row) => {
+      return {
+        linkedInUrl: row[fieldMappings['LinkedIn URL']] || '',
+        firstName: row[fieldMappings['First Name']] || '',
+        lastName: row[fieldMappings['Last Name']] || '',
+        email: row[fieldMappings['Email']] || '',
+        companyId: row[fieldMappings['Company ID']] || '',
+        status: row[fieldMappings['LinkedIn URL']] ? 'active' : 'inactive',
+        trustScore: calculateTrustScore(row[fieldMappings['Last Updated']] || ''),
       };
-
-      // Check if the lead already exists in local storage
-      const existingLeads = JSON.parse(localStorage.getItem('leads') || '[]');
-      const existingLead = existingLeads.find((lead: Lead) => lead.email === newLead.email || lead.linkedInUrl === newLead.linkedInUrl);
-
-      if (existingLead) {
-        // Update existing lead
-        Object.assign(existingLead, newLead);
-        updated++;
-      } else {
-        // Create new lead
-        existingLeads.push(newLead);
-        created++;
-      }
-
-      // Save updated leads back to local storage
-      localStorage.setItem('leads', JSON.stringify(existingLeads));
-      return newLead;
     });
 
-    setSummary({ created, updated, errors });
-    console.log(processedData);
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/upload-csv', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(processedData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Summary:', result);
+        router.push('/admin/upload-summary'); // Redirect to summary page
+      } else {
+        console.error('Error uploading CSV');
+      }
+    } catch (error) {
+      console.error('Error uploading CSV:', error);
+    }
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">CSV Upload</h1>
-      <input type="file" accept=".csv" title='CSV file' onChange={handleFileChange} className="mb-4" />
-      <button onClick={handleUpload} className="bg-yellow-500 text-white py-2 px-4 rounded">Upload CSV</button>
-
-      {showMappings && (
-        <div className="mt-4">
-          <h2 className="text-xl font-bold mb-4">Field Mappings</h2>
-          <div className="mb-4">
-            <h3 className="text-lg font-bold mb-2">Lead Info:</h3>
-            {['linkedInUrl', 'firstName', 'lastName', 'email'].map((dbField) => (
-              <div key={dbField} className="mb-2">
-                <label className="mr-2">{dbField}:</label>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Upload CSV</h1>
+      <input type="file" accept=".csv" onChange={handleFileChange} className="mb-4" title="Upload your CSV file here" />
+      {csvColumns.length > 0 && (
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <h2 className="text-xl font-bold">Lead Info:</h2>
+            {['LinkedIn URL', 'First Name', 'Last Name', 'Email', 'Last Updated'].map((field) => (
+              <div key={field} className="mb-2">
+                <label className="block font-semibold">{field}</label>
                 <select
-                  onChange={(e) => handleFieldMapping(e.target.value, dbField)}
-                  className="p-2 border border-gray-300 rounded"
-                  title='lead dropdown'
+                  onChange={(e) => handleFieldMapping(field, e.target.value)}
+                  className="border rounded p-2 w-full"
+                  defaultValue=""
+                  title={`Select the CSV column for ${field}`}
                 >
-                  <option value="">Select a field</option>
-                  {csvHeaders.map((header) => (
-                    <option key={header} value={header}>
-                      {header}
+                  <option value="" disabled>Select CSV Column</option>
+                  {csvColumns.map((column) => (
+                    <option key={column} value={column}>
+                      {column}
                     </option>
                   ))}
                 </select>
               </div>
             ))}
           </div>
-
-          <div className="mb-4">
-            <h3 className="text-lg font-bold mb-2">Company Info:</h3>
-            {['companyId', 'companyName', 'website', 'phone'].map((dbField) => (
-              <div key={dbField} className="mb-2">
-                <label className="mr-2">{dbField}:</label>
+          <div>
+            <h2 className="text-xl font-bold">Company Info:</h2>
+            {['Company Name', 'Company LinkedIn URL', 'Website', 'Company Phone'].map((field) => (
+              <div key={field} className="mb-2">
+                <label className="block font-semibold">{field}</label>
                 <select
-                  onChange={(e) => handleFieldMapping(e.target.value, dbField)}
-                  className="p-2 border border-gray-300 rounded"
-                  title='company dropdown'
+                  onChange={(e) => handleFieldMapping(field, e.target.value)}
+                  className="border rounded p-2 w-full"
+                  defaultValue=""
+                  title={`Select the CSV column for ${field}`}
                 >
-                  <option value="">Select a field</option>
-                  {csvHeaders.map((header) => (
-                    <option key={header} value={header}>
-                      {header}
+                  <option value="" disabled>Select CSV Column</option>
+                  {csvColumns.map((column) => (
+                    <option key={column} value={column}>
+                      {column}
                     </option>
                   ))}
                 </select>
               </div>
             ))}
-          </div>
-
-          <button onClick={handleProcessData} className="bg-green-500 text-white py-2 px-4 rounded">Confirm</button>
-
-          <div className="mt-4">
-            <h2 className="text-xl font-bold mb-4">Summary</h2>
-            <p>Records Created: {summary.created}</p>
-            <p>Records Updated: {summary.updated}</p>
-            <p>Errors: {summary.errors}</p>
           </div>
         </div>
       )}
+      <button
+        onClick={handleUpload}
+        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-blue-700"
+        title="Confirm and upload the mapped data"
+      >
+        Confirm
+      </button>
     </div>
   );
 };
