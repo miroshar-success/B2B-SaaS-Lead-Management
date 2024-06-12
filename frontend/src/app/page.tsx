@@ -11,14 +11,14 @@ interface CardProps {}
 
 const Login: React.FC<CardProps> = () => {
   const [showLogin, setShowLogin] = useState<boolean>(true);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const [newPassword, setNewPassword] = useState<string>('');
   const [confirmpassword, setConfirmPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<String>('');
-  const { user, setUser, isLoggedIn, setIsLoggedIn, login } = useAuth();
+  const { user, setUser, isLoggedIn, setIsLoggedIn, login, register } = useAuth();
 
 
   const router = useRouter();
@@ -56,6 +56,7 @@ const Login: React.FC<CardProps> = () => {
       if(incorrectPassword){
         setError('Password does not match. Please try again');
       } else {
+        await register({email, newPassword});
         setIsSignUp(!isSignUp);
       }
     }

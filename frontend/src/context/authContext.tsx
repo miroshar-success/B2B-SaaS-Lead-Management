@@ -33,9 +33,21 @@ const AuthProvider = (props: ContainerProps) => {
         setIsLoggedIn(false);
       }
     };
+    const register = async (credentials: { email: string; newPassword: string }) => {
+      try {
+        const response = await axios.post('http://127.0.0.1:5000/api/users/register', credentials);
+        // const userData: User = response.data; // Extract user data from response
+        // setUser(userData);
+        // setIsLoggedIn(true);
+      } catch (error) {
+        console.error('Failed to register', error);
+        // setUser(null);
+        // setIsLoggedIn(false);
+      }
+    };
   // Provide the AuthContext value to its children
   return (
-    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn , user, setUser, login }}>
+    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn , user, setUser, login, register }}>
      { props.children } 
     </AuthContext.Provider>);
 }

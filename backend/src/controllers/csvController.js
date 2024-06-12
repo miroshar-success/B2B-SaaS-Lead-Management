@@ -17,7 +17,7 @@ const processCSVData = async (csvData, fieldMappings) => {
   for (const row of csvData) {
     try {
       const leadData = {
-        linkedInUrl: row[fieldMappings['LinkedIn URL']],
+        linkedInUrl: row[fieldMappings['LinkedIn Url']],
         firstName: row[fieldMappings['First Name']],
         lastName: row[fieldMappings['Last Name']],
         email: row[fieldMappings['Email']],
@@ -26,9 +26,9 @@ const processCSVData = async (csvData, fieldMappings) => {
 
       const companyData = {
         name: row[fieldMappings['Company Name']],
-        linkedInUrl: row[fieldMappings['LinkedIn URL']],
-        website: row[fieldMappings['Website']],
-        phone: row[fieldMappings['Phone']],
+        linkedInUrl: row[fieldMappings['Company Linkedin Url']],
+        website: row[fieldMappings['Company Website']],
+        phone: row[fieldMappings['Phone numbers']],
       };
 
       const trustScore = calculateTrustScore(row[fieldMappings['Last Updated']]);
