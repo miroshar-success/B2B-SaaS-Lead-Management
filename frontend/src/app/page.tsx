@@ -67,7 +67,7 @@ const Login: React.FC<CardProps> = () => {
       <div className="bg-white text-gray-800 rounded-lg shadow-md p-8 max-w-md w-full sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3">
         <h1 className="text-3xl font-bold mb-4">Apollo.io</h1>
         <h2 className="text-xl mb-6">{isSignUp ? 'Sign Up' : 'Log In'}</h2>
-        <div className="flex justify-center mb-4 flex-wrap">
+        {/* <div className="flex justify-center mb-4 flex-wrap">
           <button className="bg-white text-gray-800 border border-gray-300 rounded-md px-4 py-2 mr-2 mb-2 hover:bg-gray-100 transition-colors duration-300 flex items-center">
             <i className="fab fa-google mr-2"></i> { isSignUp ? 'Sign Up' : 'Log In'} with Google
           </button>
@@ -77,7 +77,7 @@ const Login: React.FC<CardProps> = () => {
           <button className="bg-white text-gray-800 border border-gray-300 rounded-md px-4 py-2 mb-2 hover:bg-gray-100 transition-colors duration-300 flex items-center">
             <i className="fas fa-building mr-2"></i> { isSignUp ? 'Sign Up' : 'Log In'} with your Organization
           </button>
-        </div>
+        </div> */}
         <div className="text-center mb-4">OR</div>
         <form onSubmit={handleSubmit}>
           <input
@@ -133,10 +133,10 @@ const Login: React.FC<CardProps> = () => {
         {
           !isSignUp && (
             <div className="flex justify-between items-center mt-4 flex-wrap">
-              <label className="flex items-center mb-2">
+              {/* <label className="flex items-center mb-2">
                 <input type="checkbox" className="form-checkbox text-blue-600 mr-2" />
                 Keep me signed in
-              </label>
+              </label> */}
               <a href="#" className="text-blue-600 hover:text-blue-800 transition-colors duration-300 mb-2">
                 Forgot your password?
               </a>
