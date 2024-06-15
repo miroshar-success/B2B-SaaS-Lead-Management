@@ -6,16 +6,20 @@ import { useRouter } from 'next/navigation';
 import { User } from '@/context/authContext2';
 import { useEffect, useState } from 'react';
 
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: 'admin' | 'user' | 'super_admin';
+// interface User {
+//   id: string;
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   role: 'admin' | 'user' | 'super_admin';
+// }
+
+interface UserManagementPageProps {
+  users: User[];
 }
 
 
-const UserManagementPage: React.FC<User[]>  = ({users}) => {
+const UserManagementPage: React.FC<UserManagementPageProps>  = ({users}) => {
   const { user, setUser, isLoggedIn, setIsLoggedIn } = useAuth();
   const router = useRouter();
   
@@ -48,7 +52,7 @@ const UserManagementPage: React.FC<User[]>  = ({users}) => {
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user.id}>
+              <tr key={user.email}>
                 {/* <td>{`${user.firstName} ${user.lastName}`}</td> */}
                 <td>{user.email}</td>
                 <td>{user.role}</td>

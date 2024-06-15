@@ -1,9 +1,22 @@
 // pages/upload-summary.tsx
-"use client"
+"use client";
+
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const UploadSummary = () => {
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Upload Summary</h1>
+      <Suspense fallback={<div>Loading...</div>}>
+        <ClientSection />
+      </Suspense>
+    </div>
+  );
+};
+
+const ClientSection = () => {
   const searchParams = useSearchParams();
   const recordsCreated = searchParams.get('recordsCreated');
   const recordsUpdated = searchParams.get('recordsUpdated');
@@ -25,12 +38,11 @@ const UploadSummary = () => {
   }, [recordsCreated, recordsUpdated, errors]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Upload Summary</h1>
+    <>
       <p>Records Created: {summary.recordsCreated}</p>
       <p>Records Updated: {summary.recordsUpdated}</p>
       <p>Errors: {summary.errors}</p>
-    </div>
+    </>
   );
 };
 

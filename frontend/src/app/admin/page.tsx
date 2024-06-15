@@ -7,8 +7,10 @@ import CSVUploadPage from '../../components/csv-upload';
 import { useState, MouseEvent, useEffect } from 'react';
 import { useAuth } from '@/context/authContext';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { User } from '@/context/authContext2';
+
+
 
 const Admin = () => {
 
@@ -42,7 +44,11 @@ const Admin = () => {
         setError(null);
       } catch (error) {
         console.error('Error fetching users:', error);
-        setError(error.response?.data?.message || 'Failed to fetch users');
+        if (axios.isAxiosError(error)) {
+          setError(error.response?.data?.message || 'Failed to fetch users');
+        } else {
+          setError('An unexpected error occurred');
+        }
       }
     };
 
