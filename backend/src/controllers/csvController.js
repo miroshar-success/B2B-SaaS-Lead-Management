@@ -17,7 +17,7 @@ const processCSVData = async (csvData, fieldMappings) => {
   for (const row of csvData) {
     try {
       const leadData = {
-        linkedInUrl: row[fieldMappings['LinkedIn Url']],
+        linkedInUrl: row[fieldMappings['LinkedIn UrL']],
         firstName: row[fieldMappings['First Name']],
         lastName: row[fieldMappings['Last Name']],
         email: row[fieldMappings['Email']],
@@ -32,6 +32,13 @@ const processCSVData = async (csvData, fieldMappings) => {
       };
 
       const trustScore = calculateTrustScore(row[fieldMappings['Last Updated']]);
+
+      // Check if the linkedInUrl is present
+      if (!leadData.linkedInUrl) {
+        console.warn('Missing LinkedIn Url for row:', row);
+        errors++;
+        continue;
+      }
 
       const existingLead = await Lead.findOne({
         $or: [{ email: leadData.email }, { linkedInUrl: leadData.linkedInUrl }],

@@ -2,6 +2,9 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/authContext';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Link from 'next/link';
 
 interface CardProps {}
 
@@ -29,23 +32,33 @@ const Login: React.FC<CardProps> = () => {
 
     if (!isSignUp) {
       try {
-        await login({ email, password });
-        setIsLoggedIn(true);
-        router.push('/home'); // Navigate to the home page
+        const loggedIn = await login({ email, password});
+        if (loggedIn){
+          setIsLoggedIn(true);
+          toast.success('Login successful!');
+          router.push('/home'); // Navigate to the home page
+        } else {
+          toast.error('invalid email or password!')
+          setError('Failed to log in. Please check your credentials.');
+        }
       } catch (error) {
         console.error(error);
-        setError('Failed to log in. Please check your credentials.');
       }
     } else {
       if (confirmPassword !== newPassword) {
         setError('Passwords do not match. Please try again.');
       } else {
         try {
-          await register({ email, newPassword });
-          setIsSignUp(false);
+          const created = await register({ email, newPassword });
+          if(created){
+            setIsSignUp(false);
+            toast.success('Registration successful!');
+          } else {
+            toast.error('User already exists');
+            setError('Failed to sign up. Please try again.');
+          }
         } catch (error) {
           console.error(error);
-          setError('Failed to sign up. Please try again.');
         }
       }
     }
@@ -144,6 +157,7 @@ const Login: React.FC<CardProps> = () => {
           )}
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

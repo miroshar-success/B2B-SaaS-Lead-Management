@@ -11,6 +11,10 @@ const CSVUpload = () => {
   const [csvData, setCSVData] = useState<CSVRow[]>([]);
   const [fieldMappings, setFieldMappings] = useState<{ [key: string]: string }>({});
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(0);
+  const [total, setTotal] = useState<number>(0);
+  const [showProgressPopup, setShowProgressPopup] = useState<boolean>(false);
   const router = useRouter();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,8 +39,21 @@ const CSVUpload = () => {
   };
 
   const handleConfirm = async () => {
+
+    setIsUploading(true);
+    setShowProgressPopup(true);
+    setTotal(csvData.length);
+
+    const increment = 100 / csvData.length;
+
+    for (let i = 0; i < csvData.length; i++) {
+      // Simulate processing each row
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate network latency
+      setProgress((prevProgress) => prevProgress + increment);
+    }
+
     try {
-      const response = await axios.post('http://localhost:5000/api/upload-csv', {
+      const response = await axios.post('https://b2b-saas-lead-mangement-3.onrender.com/api/upload-csv', {
         csvData,
         fieldMappings,
       });
@@ -45,6 +62,9 @@ const CSVUpload = () => {
       router.push(`/admin/upload-summary?recordsCreated=${recordsCreated}&recordsUpdated=${recordsUpdated}&errors=${errors}`);
     } catch (error) {
       console.error('Error uploading CSV:', error);
+    } finally {
+      setIsUploading(false);
+      setShowProgressPopup(false);
     }
   };
 
@@ -56,7 +76,7 @@ const CSVUpload = () => {
 
         <div className="mb-4">
           <h2 className="text-xl font-semibold">Lead Info:</h2>
-          {['LinkedIn URL', 'First Name', 'Last Name', 'Email'].map((field, index) => (
+          {['LinkedIn UrL', 'First Name', 'Last Name', 'Email', 'Last Updated'].map((field, index) => (
             <div key={index} className="mb-2">
               <label className="block mb-1">{field}:</label>
               <select
@@ -75,7 +95,7 @@ const CSVUpload = () => {
 
         <div className="mb-4">
           <h2 className="text-xl font-semibold">Company Info:</h2>
-          {['LinkedIn URL', 'Company Name', 'Website', 'Phone'].map((field, index) => (
+          {['Company Linkedin Url', 'Company Name', 'Company Website', 'Phone numbers'].map((field, index) => (
             <div key={index} className="mb-2">
               <label className="block mb-1">{field}:</label>
               <select
@@ -99,6 +119,27 @@ const CSVUpload = () => {
           Confirm
         </button>
       </div>
+
+            {/* Progress Popup */}
+            {showProgressPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <h2 className="text-xl font-bold mb-4">Uploading CSV</h2>
+            <p className="mb-4">Processing {Math.round(progress)}% of {total} records</p>
+            <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+              <div className="bg-blue-500 h-4 rounded-full" style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+            <button
+              onClick={() => setShowProgressPopup(false)}
+              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

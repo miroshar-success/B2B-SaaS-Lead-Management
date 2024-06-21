@@ -4,13 +4,29 @@ import Link from 'next/link';
 import SideBar from '@/layout/SideBar';
 import NavBar from '@/layout/Nav';
 import { useAuth } from '@/context/authContext';
+import { useEffect, useState } from 'react';
 
 const HomePage = () => {
-  const { user } = useAuth();
+  const { user, isLoggedIn } = useAuth();
+
+  const [loggedUser, setLoggedUser] = useState<string | null>(null);
+
+  useEffect(() => {
+      
+    const getLoggedUser = () => {
+      if (typeof window !== 'undefined') {
+        const user = window.localStorage.getItem('user');
+        setLoggedUser(user);
+      }
+    };
+
+    getLoggedUser();
+  }, []);
+
   return (
     <>
     {
-      user ? 
+      loggedUser ? 
             <>
               <SideBar />
               <NavBar />

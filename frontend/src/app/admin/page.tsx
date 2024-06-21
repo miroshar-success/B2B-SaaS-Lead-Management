@@ -2,13 +2,14 @@
 "use client"
 import SideBar from '@/layout/SideBar';
 import NavBar from '@/layout/Nav';
-import UserManagementPage from '../../components/user-management';
+import UserManagementPage, { User2 } from '../../components/user-management';
 import CSVUploadPage from '../../components/csv-upload';
 import { useState, MouseEvent, useEffect } from 'react';
 import { useAuth } from '@/context/authContext';
 import { useRouter } from 'next/navigation';
 import axios, { AxiosError } from 'axios';
 import { User } from '@/context/authContext2';
+import Link from 'next/link';
 
 
 
@@ -16,28 +17,34 @@ const Admin = () => {
 
     const [ isDashboard, setIsDashboard ] = useState<boolean>(true);
     const [ active, setActive] = useState<String>('dashboard');
-    const [users, setUsers] = useState<User[]>([]);
+    const [users, setUsers] = useState<User2[]>([]);
     const [error, setError] = useState<string | null>(null);
     const { user, setUser, isLoggedIn, setIsLoggedIn } = useAuth();
+    const [loggedUser, setLoggedUser] = useState<string | null>(null);
     const router = useRouter();
 
 
-
+    const notAllowed = user?.role === 'user';
 
     useEffect(() => {
       
-      if (!isLoggedIn && !user ) {
-        router.push('/');
-        return;
-      }
+      const getLoggedUser = () => {
+        if (typeof window !== 'undefined') {
+          const user = window.localStorage.getItem('user');
+          setLoggedUser(user);
+        }
+      };
+  
+      getLoggedUser();
+
   
       fetchUsers();
-    }, [user, isLoggedIn]);
+    }, []);
 
     const fetchUsers = async () => {
       try {
         // console.log(isLoggedIn);
-        const response = await axios.get('http://127.0.0.1:5000/api/users/', { withCredentials: true});
+        const response = await axios.get('https://b2b-saas-lead-mangement-3.onrender.com/api/users/', { withCredentials: true});
         const data =  response.data;
         // console.log(data); 
         setUsers(data);
@@ -65,6 +72,7 @@ const Admin = () => {
 
   return (
     <>
+    {loggedUser && !notAllowed ? <>
       <SideBar />
       <NavBar />
       <div className='relative h-[45em] pt-8'>
@@ -86,6 +94,13 @@ const Admin = () => {
           </>
         </div>
       </div>
+    </> : <>
+       <div className='flex flex-col gap-3 items-center justify-center text-4xl h-screen opacity-15'>
+          <h1>User not allowed access</h1>
+          <Link className='text-xl' href='/'>Go to Login page</Link>
+      </div>
+    </>
+    }
     </>
   );
 };

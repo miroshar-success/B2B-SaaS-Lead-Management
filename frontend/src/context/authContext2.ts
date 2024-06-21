@@ -8,6 +8,8 @@ export type AuthContextType = {
   setUser: React.Dispatch<SetStateAction<User|null>>;
   login: LoginFunction;
   register: RegisterFunction;
+  isActive: string;
+  setIsActive: React.Dispatch<SetStateAction<string>>;
 }
 
 // Define the shape of the user object
@@ -18,8 +20,8 @@ export interface User {
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-type LoginFunction = (credentials: Credentials) => Promise<void>;
-type RegisterFunction = (credentials: Credentials2) => Promise<void>;
+type LoginFunction = (credentials: Credentials) => Promise<boolean>;
+type RegisterFunction = (credentials: Credentials2) => Promise<boolean>;
 
 type Credentials = {
   email: string;

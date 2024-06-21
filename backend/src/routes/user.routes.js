@@ -81,4 +81,10 @@ router.delete(
   userController.delete
 );
 
+router.post(
+  '/validate', 
+  validateRequest,
+  userController.validate
+);
+
 module.exports = router;

@@ -14,13 +14,30 @@ const upload = multer({ dest: 'uploads/' });
 
 const app = express();
 
+
+// app.use(cors(corsOptions));
+const allowedOrigins = [
+  'https://b2-b-saa-s-lead-mangement.vercel.app',
+  'http://localhost:3000'
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true // This is the key to enabling credentials
+};
+
 // Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use(cors({
-  origin: 'http://localhost:3000', // or your frontend URL
-  credentials: true,
-}));
+app.use(cors(corsOptions));
 app.use(cookieParser()); 
 
 // MongoDB connection

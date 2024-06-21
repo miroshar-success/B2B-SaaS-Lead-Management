@@ -146,3 +146,20 @@ exports.delete = async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 };
+
+exports.validate = async (req, res) => {
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(401).send({ message: 'Access denied. No token provided.' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const users = await User.find();
+    req.user = decoded;
+    const loggedInUser = users.find(u => u.id === req.user.id);
+    res.status(200).send({ token: token, user: { email: loggedInUser.email, role: loggedInUser.role} });
+  } catch (err) {
+    res.status(400).send({ message: 'Invalid token.' });
+  }
+};
