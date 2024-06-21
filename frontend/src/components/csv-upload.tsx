@@ -125,7 +125,7 @@ const CSVUpload = () => {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-lg p-8">
             <h2 className="text-xl font-bold mb-4">Uploading CSV</h2>
-            <p className="mb-4">Processing {Math.round(progress)}% of {total} records</p>
+            <p className="mb-4">Fetching {Math.round(progress)}% of {total} records</p>
             <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
               <div className="bg-blue-500 h-4 rounded-full" style={{ width: `${progress}%` }}
               ></div>
