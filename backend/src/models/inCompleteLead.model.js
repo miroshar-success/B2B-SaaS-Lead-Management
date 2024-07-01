@@ -5,7 +5,7 @@ const FieldSchema = new mongoose.Schema({
   lastUpdated: { type: Date, default: Date.now },
 });
 
-const LeadSchema = new mongoose.Schema(
+const InCompleteLeadSchema = new mongoose.Schema(
   {
     linkedInUrl: FieldSchema,
     firstName: FieldSchema,
@@ -31,4 +31,4 @@ const LeadSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Lead", LeadSchema);
+module.exports = mongoose.model("InCompleteLead", InCompleteLeadSchema);

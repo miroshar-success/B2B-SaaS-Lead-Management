@@ -1,30 +1,36 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const CompanySchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  linkedInUrl: { type: String, required: true },
-  // companyId: { type: String, required: true },
-  address: String,
-  website: String,
-  phone: String,
-  employees: Number,
-  retailLocation: Number,
-  industry: String,
-  keywords: String,
-  facebook: String,
-  twitter: String,
-  city: String,
-  state: String,
-  country: String,
-  seoDescription: String,
-  technologies: String,
-  annualRevenue: Number,
-  totalFunding: Number,
-  latestFunding: Number,
-  latestFundingAmount: Number,
-  lastRaisedAt: Number,
-  // Add other company fields as needed
-},
-{ timestamps: true });
+const FieldSchema = new mongoose.Schema({
+  value: { type: String },
+  lastUpdated: { type: Date, default: Date.now },
+});
 
-module.exports = mongoose.model('Company', CompanySchema);
+const CompanySchema = new mongoose.Schema(
+  {
+    name: FieldSchema,
+    linkedInUrl: FieldSchema,
+    address: FieldSchema,
+    website: FieldSchema,
+    phone: FieldSchema,
+    employees: FieldSchema,
+    retailLocation: FieldSchema,
+    industry: FieldSchema,
+    keywords: FieldSchema,
+    facebook: FieldSchema,
+    twitter: FieldSchema,
+    city: FieldSchema,
+    state: FieldSchema,
+    country: FieldSchema,
+    seoDescription: FieldSchema,
+    technologies: FieldSchema,
+    annualRevenue: FieldSchema,
+    totalFunding: FieldSchema,
+    latestFunding: FieldSchema,
+    latestFundingAmount: FieldSchema,
+    lastRaisedAt: FieldSchema,
+    // Add other company fields as needed
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model("Company", CompanySchema);

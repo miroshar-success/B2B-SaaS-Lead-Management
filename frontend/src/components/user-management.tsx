@@ -1,17 +1,16 @@
 // pages/admin/user-management.tsx
-"use client"
-import { useAuth } from '@/context/authContext';
-import axios from 'axios';
-import { useRouter } from 'next/navigation';
-import { User } from '@/context/authContext2';
-import { useEffect, useState } from 'react';
+"use client";
+import { useAuth } from "@/context/authContext";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { User } from "@/context/authContext2";
+import { useEffect, useState } from "react";
 
 export interface User2 {
   _id: string;
   email: string;
   role: string;
 }
-
 
 interface UserManagementPageProps {
   users: User2[];
@@ -25,18 +24,17 @@ const UserManagementPage: React.FC<UserManagementPageProps> = ({ users }) => {
   const [selectedUser, setSelectedUser] = useState<User2 | null>(null);
 
   const getCookie = (name: string) => {
-    if (typeof document !== 'undefined') {
+    if (typeof document !== "undefined") {
       const value = `; ${document.cookie}`;
       const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      if (parts.length === 2) return parts.pop()?.split(";").shift();
     }
     return null;
   };
 
   // Check if the component is running in a browser environment
-  const isBrowser = typeof window !== 'undefined';
+  const isBrowser = typeof window !== "undefined";
   const router = isBrowser ? useRouter() : null; // Conditionally use useRouter
-
 
   const openEditModal = (user: User2) => {
     setSelectedUser(user);
@@ -62,15 +60,19 @@ const UserManagementPage: React.FC<UserManagementPageProps> = ({ users }) => {
     if (selectedUser && isBrowser && router) {
       try {
         // Make API call to update user role
-        await axios.put(`https://b2b-saas-lead-mangement-3.onrender.com/api/users/${selectedUser._id}/role`, { role: newRole }, {
-          withCredentials: true,
-        });
+        await axios.put(
+          `https://b2b-saas-lead-mangement-main.onrender.com/api/users/${selectedUser._id}/role`,
+          { role: newRole },
+          {
+            withCredentials: true,
+          }
+        );
         // Update UI or refresh data as needed
         closeEditModal();
         router.refresh();
         window.location.reload();
       } catch (error) {
-        console.error('Error updating user role', error);
+        console.error("Error updating user role", error);
       }
     }
   };
@@ -79,15 +81,18 @@ const UserManagementPage: React.FC<UserManagementPageProps> = ({ users }) => {
     if (selectedUser && isBrowser && router) {
       try {
         // Make API call to delete user by ID
-        await axios.delete(`https://b2b-saas-lead-mangement-3.onrender.com/api/users/${selectedUser._id}`, {
-          withCredentials: true,
-        });
+        await axios.delete(
+          `https://b2b-saas-lead-mangement-main.onrender.com/api/users/${selectedUser._id}`,
+          {
+            withCredentials: true,
+          }
+        );
         // Update UI or refresh data as needed
         closeDeleteModal();
         router.refresh();
         window.location.reload();
       } catch (error) {
-        console.error('Error deleting user', error);
+        console.error("Error deleting user", error);
       }
     }
   };
@@ -136,7 +141,10 @@ const UserManagementPage: React.FC<UserManagementPageProps> = ({ users }) => {
             <h2 className="text-xl font-bold mb-4">Edit Role</h2>
             <p className="mb-4">Change role for {selectedUser?.email}</p>
             <div className="mb-4">
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="role"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Role
               </label>
               <select
@@ -157,7 +165,7 @@ const UserManagementPage: React.FC<UserManagementPageProps> = ({ users }) => {
                 Cancel
               </button>
               <button
-                onClick={() => handleRoleChange(selectedUser?.role || '')}
+                onClick={() => handleRoleChange(selectedUser?.role || "")}
                 className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
               >
                 Save
@@ -172,7 +180,9 @@ const UserManagementPage: React.FC<UserManagementPageProps> = ({ users }) => {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-lg p-8">
             <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
-            <p className="mb-4">Are you sure you want to delete {selectedUser?.email}?</p>
+            <p className="mb-4">
+              Are you sure you want to delete {selectedUser?.email}?
+            </p>
             <div className="flex justify-end">
               <button
                 onClick={closeDeleteModal}

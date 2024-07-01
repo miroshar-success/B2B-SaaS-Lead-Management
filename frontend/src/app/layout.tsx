@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 // import { AuthProvider } from '../context/authContext'; // Assuming the path is correct
 import "./globals.css";
-import AuthProvider from '../context/authContext';
+import AuthProvider from "../context/authContext";
+import { DataProvider } from "@/context/DataContext";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,7 +18,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <AuthProvider>
-          {children}
+          <DataProvider>{children}</DataProvider>
         </AuthProvider>
       </body>
     </html>

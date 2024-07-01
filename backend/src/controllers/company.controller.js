@@ -1,37 +1,58 @@
-const Company = require('../models/company.model');
+const Company = require("../models/company.model");
 
 // Create and save a new company
 exports.create = async (req, res) => {
   try {
-    const company = new Company({
-      name: req.body.name,
-      linkedInUrl: req.body.linkedInUrl,
-      companyId: req.body.companyId,
-      address: req.body.address,
-      website: req.body.website,
-      phone: req.body.phone,
-      employees: req.body.employees,
-      retailLocation: req.body.retailLocation,
-      industry: req.body.industry,
-      keywords: req.body.keywords,
-      facebook: req.body.facebook,
-      twitter: req.body.twitter,
-      city: req.body.city,
-      state: req.body.state,
-      country: req.body.country,
-      seoDescription: req.body.seoDescription,
-      technologies: req.body.technologies,
-      annualRevenue: req.body.annualRevenue,
-      totalFunding: req.body.totalFunding,
-      latestFunding: req.body.latestFunding,
-      latestFundingAmount: req.body.latestFundingAmount,
-      lastRaisedAt: req.body.lastRaisedAt,
-    });
+    const currentDate = req.body.lastUpdated || new Date();
+    const companyData = {
+      name: { value: req.body.name, lastUpdated: currentDate },
+      linkedInUrl: { value: req.body.linkedInUrl, lastUpdated: currentDate },
+      address: { value: req.body.address, lastUpdated: currentDate },
+      website: { value: req.body.website, lastUpdated: currentDate },
+      phone: { value: req.body.phone, lastUpdated: currentDate },
+      employees: { value: req.body.employees, lastUpdated: currentDate },
+      retailLocation: {
+        value: req.body.retailLocation,
+        lastUpdated: currentDate,
+      },
+      industry: { value: req.body.industry, lastUpdated: currentDate },
+      keywords: { value: req.body.keywords, lastUpdated: currentDate },
+      facebook: { value: req.body.facebook, lastUpdated: currentDate },
+      twitter: { value: req.body.twitter, lastUpdated: currentDate },
+      city: { value: req.body.city, lastUpdated: currentDate },
+      state: { value: req.body.state, lastUpdated: currentDate },
+      country: { value: req.body.country, lastUpdated: currentDate },
+      seoDescription: {
+        value: req.body.seoDescription,
+        lastUpdated: currentDate,
+      },
+      technologies: { value: req.body.technologies, lastUpdated: currentDate },
+      annualRevenue: {
+        value: req.body.annualRevenue,
+        lastUpdated: currentDate,
+      },
+      totalFunding: { value: req.body.totalFunding, lastUpdated: currentDate },
+      latestFunding: {
+        value: req.body.latestFunding,
+        lastUpdated: currentDate,
+      },
+      latestFundingAmount: {
+        value: req.body.latestFundingAmount,
+        lastUpdated: currentDate,
+      },
+      lastRaisedAt: { value: req.body.lastRaisedAt, lastUpdated: currentDate },
+    };
 
+    const company = new Company(companyData);
     const savedCompany = await company.save();
-    res.status(201).send(savedCompany);
+    return res
+      .status(201)
+      .send({ message: "Company created", company: savedCompany });
   } catch (error) {
-    res.status(500).send({ message: error.message });
+    res.status(500).send({
+      message:
+        error.message || "Some error occurred while creating the Company.",
+    });
   }
 };
 
@@ -61,11 +82,37 @@ exports.findOne = async (req, res) => {
 // Update a company by ID
 exports.update = async (req, res) => {
   try {
-    const company = await Company.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const currentDate = req.body.lastUpdated || new Date();
+    const newCompanyData = {};
+
+    // Prepare newCompanyData with value and lastUpdated fields
+    for (const [key, value] of Object.entries(req.body)) {
+      newCompanyData[key] = { value, lastUpdated: currentDate };
+    }
+
+    const company = await Company.findById(req.params.id);
+
     if (!company) {
       return res.status(404).send({ message: "Company not found" });
     }
-    res.status(200).send(company);
+
+    // Update fields only if new data has a more recent lastUpdated date
+    for (const [key, newValue] of Object.entries(newCompanyData)) {
+      if (
+        !company[key] ||
+        new Date(newValue.lastUpdated) > new Date(company[key].lastUpdated)
+      ) {
+        company[key] = newValue;
+      }
+    }
+
+    const updatedCompany = await company.save();
+    res
+      .status(200)
+      .send({
+        message: "Company updated successfully",
+        company: updatedCompany,
+      });
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
