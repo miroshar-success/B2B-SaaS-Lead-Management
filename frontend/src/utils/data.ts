@@ -5,11 +5,8 @@ export const calculateStatistics = (results: any[]) => {
 
   results.forEach((result) => {
     switch (result.status) {
-      case "created":
+      case "created/updated":
         created++;
-        break;
-      case "updated":
-        updated++;
         break;
       case "error":
         errors++;
