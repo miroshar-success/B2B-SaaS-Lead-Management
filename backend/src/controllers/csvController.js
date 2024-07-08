@@ -96,6 +96,7 @@ const processCSVData = async (csvData, fieldMappings) => {
         value: row[fieldMappings["Past Companies"]],
         lastUpdated: row[fieldMappings["Last Updated"]],
       },
+      companyID: row[fieldMappings["Company Linkedin Url"]],
     };
 
     const companyData = {
@@ -198,7 +199,7 @@ const processCSVData = async (csvData, fieldMappings) => {
         status: "created in incomplete",
         reason: "Missing LinkedIn Url",
       });
-    } else {
+    } else if (leadData.firstName.value || leadData.lastName.value) {
       const incompleteLeadFilter = { "email.value": leadData.email.value };
       incompleteLeadBulkOperations.push({
         deleteOne: { filter: incompleteLeadFilter },
@@ -210,7 +211,10 @@ const processCSVData = async (csvData, fieldMappings) => {
           { "linkedInUrl.value": leadData.linkedInUrl.value },
         ],
       };
-      const leadUpdate = { $set: leadData };
+      const leadUpdate = {
+        $set: { ...leadData },
+        $setOnInsert: { linkedInUrl: leadData.linkedInUrl }, // Ensure LinkedIn URL is not changed
+      };
       leadBulkOperations.push({
         updateOne: {
           filter: leadFilter,
@@ -219,6 +223,12 @@ const processCSVData = async (csvData, fieldMappings) => {
         },
       });
       leadResults.push({ ...leadData, status: "created/updated" });
+    } else {
+      leadResults.push({
+        ...leadData,
+        status: "error",
+        reason: "Missing first name or last name",
+      });
     }
 
     // Company Data Processing
@@ -226,7 +236,6 @@ const processCSVData = async (csvData, fieldMappings) => {
       "linkedInUrl.value": companyData.linkedInUrl.value,
     };
     const companyUpdate = { $set: companyData };
-    const companyOptions = { upsert: true };
     companyBulkOperations.push({
       updateOne: {
         filter: companyFilter,

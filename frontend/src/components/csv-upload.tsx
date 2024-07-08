@@ -89,6 +89,26 @@ const CSVUpload = () => {
       setError("Import a valid csv file");
       return;
     }
+
+    const requiredFields = ["First Name", "Last Name"];
+    const missingFields = requiredFields.filter(
+      (field) => !fieldMappings[field]
+    );
+
+    if (missingFields.length > 0) {
+      setError(`Missing required field mappings: ${missingFields.join(", ")}`);
+      return;
+    }
+
+    const invalidRows = csvData.filter(
+      (row) => !row[fieldMappings["First Name"]] || !row[fieldMappings["Last Name"]]
+    );
+
+    if (invalidRows.length > 0) {
+      setError("CSV contains rows with missing first name or last name");
+      return;
+    }
+
     startUpload(csvData, fieldMappings);
   };
 
