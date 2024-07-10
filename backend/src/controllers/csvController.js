@@ -1,6 +1,5 @@
 const Lead = require("../models/lead.model");
 const Company = require("../models/company.model");
-const InCompleteLead = require("../models/inCompleteLead.model");
 
 const calculateTrustScore = (date) => {
   const today = new Date();
@@ -15,7 +14,6 @@ const processCSVData = async (csvData, fieldMappings) => {
   let companyResults = [];
 
   const leadBulkOperations = [];
-  const incompleteLeadBulkOperations = [];
   const companyBulkOperations = [];
 
   for (const row of csvData) {
@@ -97,6 +95,7 @@ const processCSVData = async (csvData, fieldMappings) => {
         lastUpdated: row[fieldMappings["Last Updated"]],
       },
       companyID: row[fieldMappings["Company Linkedin Url"]],
+      isComplete: !!row[fieldMappings["LinkedIn UrL"]],
     };
 
     const companyData = {
@@ -191,20 +190,15 @@ const processCSVData = async (csvData, fieldMappings) => {
       const filter = { "email.value": leadData.email.value };
       const update = { $set: leadData };
       const upsert = true;
-      incompleteLeadBulkOperations.push({
+      leadBulkOperations.push({
         updateOne: { filter, update, upsert },
       });
       leadResults.push({
         ...leadData,
-        status: "created in incomplete",
+        status: "created/updated",
         reason: "Missing LinkedIn Url",
       });
     } else if (leadData.firstName.value || leadData.lastName.value) {
-      const incompleteLeadFilter = { "email.value": leadData.email.value };
-      incompleteLeadBulkOperations.push({
-        deleteOne: { filter: incompleteLeadFilter },
-      });
-
       const leadFilter = {
         $or: [
           { "email.value": leadData.email.value },
@@ -212,8 +206,7 @@ const processCSVData = async (csvData, fieldMappings) => {
         ],
       };
       const leadUpdate = {
-        $set: { ...leadData },
-        $setOnInsert: { linkedInUrl: leadData.linkedInUrl }, // Ensure LinkedIn URL is not changed
+        $set: leadData,
       };
       leadBulkOperations.push({
         updateOne: {
@@ -248,7 +241,6 @@ const processCSVData = async (csvData, fieldMappings) => {
 
   try {
     const results = await Promise.all([
-      InCompleteLead.bulkWrite(incompleteLeadBulkOperations),
       Lead.bulkWrite(leadBulkOperations),
       Company.bulkWrite(companyBulkOperations),
     ]);
@@ -258,5 +250,7 @@ const processCSVData = async (csvData, fieldMappings) => {
 
   return { leadResults, companyResults };
 };
+
+module.exports = { processCSVData };
 
 module.exports = { processCSVData };

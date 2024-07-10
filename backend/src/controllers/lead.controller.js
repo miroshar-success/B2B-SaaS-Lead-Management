@@ -1,5 +1,4 @@
 const Lead = require("../models/lead.model");
-const InCompleteLead = require("../models/inCompleteLead.model");
 
 exports.create = async (req, res) => {
   if (!req.body.firstName || !req.body.lastName || !req.body.email) {
@@ -57,6 +56,7 @@ exports.create = async (req, res) => {
       value: req.body.country,
       lastUpdated: req.body.lastUpdated || currentDate,
     },
+    isComplete: !!req.body.linkedInUrl,
   };
 
   const updateFieldIfNewer = (existingField, newValue, newDate) => {
@@ -70,49 +70,6 @@ exports.create = async (req, res) => {
   };
 
   try {
-    // Check if the linkedInUrl is present
-    if (!leadData.linkedInUrl.value) {
-      console.warn("Missing LinkedIn Url for lead:", leadData);
-
-      // Check if the lead exists in the IncompleteLead table
-      const existingIncompleteLead = await IncompleteLead.findOne({
-        "email.value": leadData.email.value,
-      });
-
-      if (existingIncompleteLead) {
-        for (const key in leadData) {
-          existingIncompleteLead[key] = updateFieldIfNewer(
-            existingIncompleteLead[key],
-            leadData[key].value,
-            leadData[key].lastUpdated
-          );
-        }
-        await existingIncompleteLead.save();
-        return res
-          .status(200)
-          .send({ message: "Lead updated in incomplete", lead: leadData });
-      } else {
-        const incompleteLead = new IncompleteLead(leadData);
-        await incompleteLead.save();
-        return res
-          .status(201)
-          .send({ message: "Lead created in incomplete", lead: leadData });
-      }
-    }
-
-    // Check if the lead exists in the IncompleteLead table and has now a linkedInUrl
-    const existingIncompleteLead = await IncompleteLead.findOne({
-      "email.value": leadData.email.value,
-    });
-    if (existingIncompleteLead) {
-      await IncompleteLead.deleteOne({ _id: existingIncompleteLead._id });
-      const lead = new Lead(leadData);
-      const data = await lead.save();
-      return res
-        .status(201)
-        .send({ message: "Lead moved from incomplete to lead", lead: data });
-    }
-
     // Check if the lead exists in the Lead table
     const existingLead = await Lead.findOne({
       $or: [
@@ -129,8 +86,11 @@ exports.create = async (req, res) => {
           leadData[key].lastUpdated
         );
       }
+      existingLead.isComplete = !!leadData.linkedInUrl.value; // Update isComplete field
       await existingLead.save();
-      return res.status(200).send({ message: "Lead updated", lead: leadData });
+      return res
+        .status(200)
+        .send({ message: "Lead updated", lead: existingLead });
     } else {
       const lead = new Lead(leadData);
       const data = await lead.save();
@@ -214,6 +174,9 @@ exports.update = async (req, res) => {
         updateData[key].lastUpdated
       );
     }
+
+    // Update the isComplete field based on the presence of the LinkedIn URL
+    existingLead.isComplete = !!updateData.linkedInUrl.value;
 
     const updatedLead = await existingLead.save();
 
