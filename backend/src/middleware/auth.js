@@ -1,9 +1,13 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 const auth = (req, res, next) => {
-  const token = req.header('Authorization').replace('Bearer ', '');
+  // Assuming the token is stored in a cookie named 'authToken'
+  const token = req.cookies.token;
+
   if (!token) {
-    return res.status(401).send({ message: 'Access denied. No token provided.' });
+    return res
+      .status(401)
+      .send({ message: "Access denied. No token provided." });
   }
 
   try {
@@ -11,9 +15,8 @@ const auth = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (ex) {
-    res.status(400).send({ message: 'Invalid token.' });
+    res.status(400).send({ message: "Invalid token." });
   }
 };
 
 module.exports = auth;
-

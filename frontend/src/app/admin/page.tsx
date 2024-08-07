@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import axios, { AxiosError } from "axios";
 import { User } from "@/context/authContext2";
 import Link from "next/link";
+import axiosInstance from "@/utils/axios";
 
 const Admin = () => {
   const [isDashboard, setIsDashboard] = useState<boolean>(true);
@@ -38,12 +39,9 @@ const Admin = () => {
   const fetchUsers = async () => {
     try {
       // console.log(isLoggedIn);
-      const response = await axios.get(
-        "https://b2b-saas-lead-mangement-main.onrender.com/api/users/",
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await axiosInstance.get("/users/", {
+        withCredentials: true,
+      });
       const data = response.data;
       // console.log(data);
       setUsers(data);

@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { FaMinimize } from "react-icons/fa6";
+import axiosInstance from "@/utils/axios";
 
 interface DataContextType {
   leadResults: any[];
@@ -60,8 +61,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
       let count = 1;
       const results = await Promise.all(
         chunks.map(async (chunk, index) => {
-          const response = await axios.post(
-            "https://b2b-saas-lead-mangement-main.onrender.com/api/upload-csv",
+          const response = await axiosInstance.post(
+            "/upload-csv",
             {
               csvData: chunk,
               fieldMappings,

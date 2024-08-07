@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { AuthContextType, User } from "./authContext2";
+import axiosInstance from "@/utils/axios";
 
 type ContainerProps = {
   children: React.ReactNode;
@@ -31,13 +32,10 @@ const AuthProvider = (props: ContainerProps) => {
     const token = getCookie("token") || null;
     if (!token) {
       // Validate the token with the backend
-      axios
-        .post(
-          "https://b2b-saas-lead-mangement-main.onrender.com/api/users/validate",
-          {
-            withCredentials: true,
-          }
-        )
+      axiosInstance
+        .post("/users/validate", {
+          withCredentials: true,
+        })
         .then((response) => {
           setUser(response.data.user);
           setIsLoggedIn(true);
@@ -54,13 +52,9 @@ const AuthProvider = (props: ContainerProps) => {
     password: string;
   }): Promise<boolean> => {
     try {
-      const response = await axios.post(
-        "https://b2b-saas-lead-mangement-main.onrender.com/api/users/login",
-        credentials,
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await axiosInstance.post("/users/login", credentials, {
+        withCredentials: true,
+      });
       const userData: User = response.data;
       setUser(userData);
       setIsLoggedIn(true);
@@ -81,13 +75,10 @@ const AuthProvider = (props: ContainerProps) => {
     try {
       console.log("Registration credentials:", credentials2); // Log credentials
 
-      const response = await axios.post(
-        "https://b2b-saas-lead-mangement-main.onrender.com/api/users/register",
-        {
-          email: credentials2.email,
-          password: credentials2.newPassword, // Ensure correct field name
-        }
-      );
+      const response = await axiosInstance.post("/users/register", {
+        email: credentials2.email,
+        password: credentials2.newPassword, // Ensure correct field name
+      });
 
       // console.log('Registration response:', response.data); // Log response data
       return true;

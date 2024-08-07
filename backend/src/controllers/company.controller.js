@@ -56,20 +56,69 @@ exports.create = async (req, res) => {
   }
 };
 
-// Find all companies
 exports.findAll = async (req, res) => {
   try {
-    const companies = await Company.find();
-    res.status(200).send(companies);
-  } catch (error) {
-    res.status(500).send({ message: error.message });
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = "createdAt",
+      order = "asc",
+      search = "",
+      filter = "{}",
+    } = req.query;
+
+    // Convert filter to JSON
+
+    // Search and Filter
+    const searchRegex = new RegExp(search, "i");
+    const searchConditions = {
+      $or: [
+        { "firstName.value": searchRegex },
+        { "lastName.value": searchRegex },
+        { "email.value": searchRegex },
+        { "title.value": searchRegex },
+        { "jobTitle.value": searchRegex },
+        { "city.value": searchRegex },
+        { "state.value": searchRegex },
+        { "country.value": searchRegex },
+        { "linkedInUrl.value": searchRegex },
+        { "facebook.value": searchRegex },
+        { "twitter.value": searchRegex },
+      ],
+      // ...filter,
+    };
+
+    // Pagination and Sorting
+    const options = {
+      skip: (parseInt(page) - 1) * parseInt(limit),
+      limit: parseInt(limit),
+      sort: { [sortBy]: order === "asc" ? 1 : -1 },
+    };
+
+    const companies = await Company.find(searchConditions, null, options);
+    const totalCompanies = await Company.countDocuments(searchConditions);
+
+    res.send({
+      companies,
+      totalPages: Math.ceil(totalCompanies / limit),
+      currentPage: parseInt(page),
+      totalCompanies,
+    });
+  } catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while retrieving companies.",
+    });
+    console.log(err);
   }
 };
 
 // Find a single company by ID
 exports.findOne = async (req, res) => {
+  console.log(req.params.id);
   try {
-    const company = await Company.findById(req.params.id);
+    const company = await Company.findOne({
+      "linkedInUrl.value": req.params.id,
+    });
     if (!company) {
       return res.status(404).send({ message: "Company not found" });
     }
@@ -107,12 +156,10 @@ exports.update = async (req, res) => {
     }
 
     const updatedCompany = await company.save();
-    res
-      .status(200)
-      .send({
-        message: "Company updated successfully",
-        company: updatedCompany,
-      });
+    res.status(200).send({
+      message: "Company updated successfully",
+      company: updatedCompany,
+    });
   } catch (error) {
     res.status(500).send({ message: error.message });
   }

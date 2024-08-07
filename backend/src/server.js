@@ -18,6 +18,7 @@ const app = express();
 const allowedOrigins = [
   "https://b2-b-saa-s-lead-mangement.vercel.app",
   "http://localhost:3000",
+  "http://localhost:5173",
   "https://b2-b-saa-s-lead-mangement-main.vercel.app",
 ];
 
@@ -35,6 +36,7 @@ const corsOptions = {
 };
 
 // Middleware
+app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cors(corsOptions));
@@ -61,12 +63,16 @@ mongoose
 const companyRoutes = require("./routes/company.routes");
 const leadRoutes = require("./routes/lead.routes");
 const usersRouter = require("./routes/user.routes");
+const transactionRouter = require("./routes/transaction.routes");
+const stripeRouter = require("./routes/stripe.routes");
 const csvRouter = require("./routes/uploadCSVRoute");
 
 app.use("/api", csvRouter);
 app.use("/api/companies", companyRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/users", usersRouter);
+app.use("/api/transactions", transactionRouter);
+app.use("/api/stripe", stripeRouter);
 
 // Start the server
 const PORT = process.env.PORT || 5000;

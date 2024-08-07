@@ -5,6 +5,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { User } from "@/context/authContext2";
 import { useEffect, useState } from "react";
+import axiosInstance from "@/utils/axios";
 
 export interface User2 {
   _id: string;
@@ -60,8 +61,8 @@ const UserManagementPage: React.FC<UserManagementPageProps> = ({ users }) => {
     if (selectedUser && isBrowser && router) {
       try {
         // Make API call to update user role
-        await axios.put(
-          `https://b2b-saas-lead-mangement-main.onrender.com/api/users/${selectedUser._id}/role`,
+        await axiosInstance.put(
+          `/users/${selectedUser._id}/role`,
           { role: newRole },
           {
             withCredentials: true,
@@ -81,12 +82,9 @@ const UserManagementPage: React.FC<UserManagementPageProps> = ({ users }) => {
     if (selectedUser && isBrowser && router) {
       try {
         // Make API call to delete user by ID
-        await axios.delete(
-          `https://b2b-saas-lead-mangement-main.onrender.com/api/users/${selectedUser._id}`,
-          {
-            withCredentials: true,
-          }
-        );
+        await axiosInstance.delete(`/users/${selectedUser._id}`, {
+          withCredentials: true,
+        });
         // Update UI or refresh data as needed
         closeDeleteModal();
         router.refresh();

@@ -1,4 +1,5 @@
 const Lead = require("../models/lead.model");
+const moment = require("moment");
 
 exports.create = async (req, res) => {
   if (!req.body.firstName || !req.body.lastName || !req.body.email) {
@@ -106,12 +107,93 @@ exports.create = async (req, res) => {
 // Retrieve all Leads from the database
 exports.findAll = async (req, res) => {
   try {
-    const leads = await Lead.find();
-    res.send(leads);
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = "createdAt",
+      order = "asc",
+      search = "",
+      filter = "{}",
+    } = req.query;
+
+    // Convert filter to JSON
+
+    // Search and Filter
+    const searchRegex = new RegExp(search, "i");
+    const searchConditions = {
+      $or: [
+        { "firstName.value": searchRegex },
+        { "lastName.value": searchRegex },
+        { "email.value": searchRegex },
+        { "title.value": searchRegex },
+        { "jobTitle.value": searchRegex },
+        { "city.value": searchRegex },
+        { "state.value": searchRegex },
+        { "country.value": searchRegex },
+        { "linkedInUrl.value": searchRegex },
+        { "facebook.value": searchRegex },
+        { "twitter.value": searchRegex },
+      ],
+      // ...filter,
+    };
+
+    // Pagination and Sorting
+    const options = {
+      skip: (parseInt(page) - 1) * parseInt(limit),
+      limit: parseInt(limit),
+      sort: { [sortBy]: order === "asc" ? 1 : -1 },
+    };
+
+    const leads = await Lead.find(searchConditions, null, options);
+    const totalLeads = await Lead.countDocuments(searchConditions);
+
+    res.send({
+      leads,
+      totalPages: Math.ceil(totalLeads / limit),
+      currentPage: parseInt(page),
+      totalLeads,
+    });
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while retrieving leads.",
     });
+    console.log(err);
+  }
+};
+
+// Retrieve all Leads from the database
+exports.getLinkedin = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search = "" } = req.query;
+
+    // Search and Filter
+    const searchRegex = new RegExp(search, "i");
+
+    const searchConditions = {
+      $or: [{ "linkedInUrl.value": searchRegex }],
+      // ...filter,
+    };
+
+    // Pagination and Sorting
+    const options = {
+      skip: (parseInt(page) - 1) * parseInt(limit),
+      limit: parseInt(limit),
+    };
+
+    const leads = await Lead.find(searchConditions, null, options);
+    const totalLeads = await Lead.countDocuments(searchConditions);
+
+    res.send({
+      leads,
+      totalPages: Math.ceil(totalLeads / limit),
+      currentPage: parseInt(page),
+      totalLeads,
+    });
+  } catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while retrieving leads.",
+    });
+    console.log(err);
   }
 };
 
@@ -183,6 +265,84 @@ exports.update = async (req, res) => {
     res.send({ message: "Lead was updated successfully.", lead: updatedLead });
   } catch (err) {
     res.status(500).send({ message: "Error updating Lead with id=" + id });
+  }
+};
+
+// Get dashboard data
+exports.getDashboardData = async (req, res) => {
+  try {
+    const totalLeads = await Lead.countDocuments();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const totalLeadsToday = await Lead.countDocuments({
+      createdAt: { $gte: today },
+    });
+
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const totalLeadsThisMonth = await Lead.countDocuments({
+      createdAt: { $gte: startOfMonth },
+    });
+
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    const totalLeadsThisWeek = await Lead.countDocuments({
+      createdAt: { $gte: startOfWeek },
+    });
+
+    const leadsPerMonth = await Lead.aggregate([
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+          },
+          total: { $sum: 1 },
+        },
+      },
+      {
+        $sort: {
+          "_id.year": 1,
+          "_id.month": 1,
+        },
+      },
+    ]);
+
+    const leadsPerJobTitle = await Lead.aggregate([
+      {
+        $group: {
+          _id: "$jobTitle.value",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { count: -1 },
+      },
+    ]);
+
+    const leadSource = await Lead.aggregate([
+      {
+        $group: {
+          _id: "$linkedInUrl.value",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { count: -1 },
+      },
+    ]);
+
+    res.json({
+      totalLeads,
+      totalLeadsToday,
+      totalLeadsThisMonth,
+      totalLeadsThisWeek,
+      leadsPerMonth,
+      leadsPerJobTitle,
+      leadSource,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 

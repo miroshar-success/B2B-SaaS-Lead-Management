@@ -1,6 +1,6 @@
-const User = require('../models/user.model');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const User = require("../models/user.model");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // Create and save a new user
 exports.create = async (req, res) => {
@@ -9,7 +9,7 @@ exports.create = async (req, res) => {
     const user = new User({
       email: req.body.email,
       password: hashedPassword,
-      role: 'user' // Default role
+      role: "user", // Default role
     });
 
     const savedUser = await user.save();
@@ -33,20 +33,20 @@ exports.login = async (req, res) => {
       return res.status(400).send({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.cookie('token', token, { 
-      httpOnly: true, 
-      // secure: process.env.NODE_ENV === 'production', 
-      secure: true, 
-      sameSite: 'none',
-      maxAge: 24 * 60 * 60 * 1000,  });
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    res.cookie("token", token, {
+      httpOnly: true,
+      // secure: process.env.NODE_ENV === 'production',
+      secure: true,
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
 
-    const currentUser = {
-      email: req.body.email,
-      role: user.role
-    }
-
-    res.status(200).send(currentUser);
+    res.status(200).send({ user });
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
@@ -54,7 +54,7 @@ exports.login = async (req, res) => {
 
 // User logout
 exports.logout = (req, res) => {
-  res.clearCookie('token');
+  res.clearCookie("token");
   res.status(200).send({ message: "Logout successful" });
 };
 
@@ -62,7 +62,9 @@ exports.logout = (req, res) => {
 exports.authenticate = (req, res, next) => {
   const token = req.cookies.token;
   if (!token) {
-    return res.status(401).send({ message: 'Access denied. No token provided.' });
+    return res
+      .status(401)
+      .send({ message: "Access denied. No token provided." });
   }
 
   try {
@@ -70,7 +72,7 @@ exports.authenticate = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
-    res.status(400).send({ message: 'Invalid token.' });
+    res.status(400).send({ message: "Invalid token." });
   }
 };
 
@@ -79,7 +81,7 @@ exports.authorize = (...roles) => {
   return (req, res, next) => {
     console.log(req.user.role);
     if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).send({ message: 'Access denied.' });
+      return res.status(403).send({ message: "Access denied." });
     }
     next();
   };
@@ -88,7 +90,11 @@ exports.authorize = (...roles) => {
 // Update user role
 exports.updateRole = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, { role: req.body.role }, { new: true });
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { role: req.body.role },
+      { new: true }
+    );
     if (!user) {
       return res.status(404).send({ message: "User not found" });
     }
@@ -124,7 +130,9 @@ exports.findOne = async (req, res) => {
 // Update a user by ID
 exports.update = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
     if (!user) {
       return res.status(404).send({ message: "User not found" });
     }
@@ -150,16 +158,20 @@ exports.delete = async (req, res) => {
 exports.validate = async (req, res) => {
   const token = req.cookies.token;
   if (!token) {
-    return res.status(401).send({ message: 'Access denied. No token provided.' });
+    return res
+      .status(401)
+      .send({ message: "Access denied. No token provided." });
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const users = await User.find();
     req.user = decoded;
-    const loggedInUser = users.find(u => u.id === req.user.id);
-    res.status(200).send({ token: token, user: { email: loggedInUser.email, role: loggedInUser.role} });
+    const loggedInUser = await User.findById(req.user.id).select("-password");
+    res.status(200).send({
+      token: token,
+      user: loggedInUser,
+    });
   } catch (err) {
-    res.status(400).send({ message: 'Invalid token.' });
+    res.status(400).send({ message: "Invalid token." });
   }
 };
