@@ -26,7 +26,11 @@ const LeadSchema = new mongoose.Schema(
     facebook: FieldSchema,
     twitter: FieldSchema,
     pastCompanies: FieldSchema,
-    companyID: { type: String },
+    companyID: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Company",
+      required: true,
+    },
     isComplete: { type: Boolean },
     // Add other company fields as needed
   },

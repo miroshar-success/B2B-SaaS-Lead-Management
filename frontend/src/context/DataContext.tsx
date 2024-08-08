@@ -1,15 +1,9 @@
-"use client";
 import React, { createContext, useState, useContext, ReactNode } from "react";
 import axios, { CancelTokenSource } from "axios";
-import { CSVRow } from "@/components/csv-upload";
-import {
-  FaCloudUploadAlt,
-  FaRegWindowMaximize,
-  FaRegWindowMinimize,
-} from "react-icons/fa";
-import { useRouter } from "next/navigation";
+import { FaCloudUploadAlt, FaRegWindowMaximize } from "react-icons/fa";
 import { FaMinimize } from "react-icons/fa6";
-import axiosInstance from "@/utils/axios";
+import { CSVRow } from "../pages/Dashboard/Upload";
+import { axiosInstance } from "./Auth";
 
 interface DataContextType {
   leadResults: any[];
@@ -22,8 +16,9 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-export const DataProvider: React.FC<{ children: ReactNode }> = ({
+export const DataProvider: React.FC<{ navigate: any; children: ReactNode }> = ({
   children,
+  navigate,
 }) => {
   const [leadResults, setLeadResults] = useState<any[]>([]);
   const [companyResults, setCompanyResults] = useState<any[]>([]);
@@ -35,7 +30,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
   const [cancelSource, setCancelSource] = useState<CancelTokenSource | null>(
     null
   );
-  const router = useRouter();
 
   const startUpload = async (
     csvData: CSVRow[],
@@ -60,7 +54,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     try {
       let count = 1;
       const results = await Promise.all(
-        chunks.map(async (chunk, index) => {
+        chunks.map(async (chunk) => {
           const response = await axiosInstance.post(
             "/upload-csv",
             {
@@ -172,7 +166,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
                     <button
                       onClick={() => {
                         closeModal();
-                        router.push("/admin/upload-summary");
+                        navigate("/summary");
                       }}
                       className="flex-1 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                     >

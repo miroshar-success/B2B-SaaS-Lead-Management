@@ -114,11 +114,8 @@ exports.findAll = async (req, res) => {
 
 // Find a single company by ID
 exports.findOne = async (req, res) => {
-  console.log(req.params.id);
   try {
-    const company = await Company.findOne({
-      "linkedInUrl.value": req.params.id,
-    });
+    const company = await Company.findById(req.params.id);
     if (!company) {
       return res.status(404).send({ message: "Company not found" });
     }

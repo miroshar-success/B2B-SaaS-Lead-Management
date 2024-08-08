@@ -144,7 +144,9 @@ exports.findAll = async (req, res) => {
       sort: { [sortBy]: order === "asc" ? 1 : -1 },
     };
 
-    const leads = await Lead.find(searchConditions, null, options);
+    const leads = await Lead.find(searchConditions, null, options).populate(
+      "companyID"
+    );
     const totalLeads = await Lead.countDocuments(searchConditions);
 
     res.send({
@@ -343,6 +345,35 @@ exports.getDashboardData = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// Controller function to search leads by a specific field with a limit
+exports.searchLeads = async (req, res) => {
+  try {
+    const { field, value, limit } = req.query;
+
+    // Validate the input
+    if (!field || !value) {
+      return res
+        .status(400)
+        .json({ error: "Field and value are required for searching." });
+    }
+
+    // Construct the search query using dynamic field access
+    const query = { [`${field}.value`]: new RegExp(value, "i") };
+
+    // Parse the limit parameter or set a default
+    const resultLimit = parseInt(limit, 10) || 10; // Default limit is 10 if not provided or invalid
+
+    // Perform the search with a limit
+    const leads = await Lead.find(query).limit(resultLimit);
+
+    // Return the matching leads
+    res.status(200).json(leads);
+  } catch (error) {
+    console.error("Error searching leads:", error);
+    res.status(500).json({ error: "An error occurred while searching leads." });
   }
 };
 

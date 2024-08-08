@@ -10,6 +10,8 @@ router.get("/", leadController.findAll);
 
 router.get("/dashboard", leadController.getDashboardData);
 
+router.get("/search", leadController.searchLeads);
+
 // Retrieve a single lead
 router.get("/:id", leadController.findOne);
 
