@@ -109,13 +109,12 @@ exports.findAll = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10,
+      limit = 25,
       sortBy = "createdAt",
       order = "asc",
       search = "",
       filter = "{}",
     } = req.query;
-
     // Convert filter to JSON
 
     // Search and Filter
@@ -134,13 +133,13 @@ exports.findAll = async (req, res) => {
         { "facebook.value": searchRegex },
         { "twitter.value": searchRegex },
       ],
-      // ...filter,
+      ...filter,
     };
 
     // Pagination and Sorting
     const options = {
       skip: (parseInt(page) - 1) * parseInt(limit),
-      limit: parseInt(limit),
+      limit: parseInt(25),
       sort: { [sortBy]: order === "asc" ? 1 : -1 },
     };
 

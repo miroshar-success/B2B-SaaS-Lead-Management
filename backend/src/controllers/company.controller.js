@@ -85,7 +85,7 @@ exports.findAll = async (req, res) => {
         { "facebook.value": searchRegex },
         { "twitter.value": searchRegex },
       ],
-      // ...filter,
+      ...filter,
     };
 
     // Pagination and Sorting
@@ -172,5 +172,36 @@ exports.delete = async (req, res) => {
     res.status(200).send({ message: "Company deleted successfully" });
   } catch (error) {
     res.status(500).send({ message: error.message });
+  }
+};
+
+// Controller function to search leads by a specific field with a limit
+exports.searchCompanies = async (req, res) => {
+  try {
+    const { field, value, limit } = req.query;
+
+    // Validate the input
+    if (!field || !value) {
+      return res
+        .status(400)
+        .json({ error: "Field and value are required for searching." });
+    }
+
+    // Construct the search query using dynamic field access
+    const query = { [`${field}.value`]: new RegExp(value, "i") };
+
+    // Parse the limit parameter or set a default
+    const resultLimit = parseInt(limit, 10) || 10; // Default limit is 10 if not provided or invalid
+
+    // Perform the search with a limit
+    const companies = await Company.find(query).limit(resultLimit);
+
+    // Return the matching companies
+    res.status(200).json(companies);
+  } catch (error) {
+    console.error("Error searching companies:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while searching companies." });
   }
 };

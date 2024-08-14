@@ -30,26 +30,23 @@ export interface Company {
   // Add other fields as needed
 }
 
+const filterConfigs = [
+  { key: "name", label: "Name" },
+  { key: "country", label: "Location" },
+  { key: "industry", label: "Industry" },
+  // Add more filter fields here if needed
+];
+
 const Companies: React.FC = () => {
   const [companies, setCompanies] = useState<Company[] | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(20);
+  const [pageSize] = useState(25);
   const [showFilter, setShowFilter] = useState(true);
   const [totalPages, setTotalPages] = useState(0);
-  const [filters, setFilters] = useState<{
-    country: string;
-    jobTitle: string;
-    department: string;
-    pastCompany: string;
-  }>({
-    country: "",
-    jobTitle: "",
-    department: "",
-    pastCompany: "",
-  });
+  const [filters, setFilters] = useState<{ [key: string]: string | null }>({});
 
   useEffect(() => {
     fetchLeads();
@@ -95,7 +92,7 @@ const Companies: React.FC = () => {
   //   setCurrentPage(1);
   // };
 
-  const handleFilterChange = (key: string, value: string) => {
+  const handleFilterChange = (key: string, value: string | null) => {
     setFilters({ ...filters, [key]: value });
     setCurrentPage(1);
   };
@@ -103,15 +100,21 @@ const Companies: React.FC = () => {
   const clearFilter = () => {};
 
   return (
-    <div className="flex  w-full">
-      <Filter
-        clearFilters={clearFilter}
-        filters={filters}
-        handleFilterChange={handleFilterChange}
-        setShowFilter={setShowFilter}
-        showFilter={showFilter}
-      />
-      <div className="bg-white rounded-md p-3 w-full">
+    <div className="flex  w-full gap-3">
+      <div className={`${showFilter ? "w-1/5" : "w-0"}`}>
+        <Filter
+          clearFilters={clearFilter}
+          filters={filters}
+          handleFilterChange={handleFilterChange}
+          setShowFilter={setShowFilter}
+          showFilter={showFilter}
+          filterConfigs={filterConfigs}
+          url="companies"
+        />
+      </div>
+      <div
+        className={`bg-white rounded-md p-3 ${showFilter ? "w-4/5" : "w-full"}`}
+      >
         <div className="flex justify-between items-center mb-4">
           <div className="flex gap-10 items-center">
             {showFilter ? (
@@ -211,7 +214,9 @@ const Companies: React.FC = () => {
                   <Loading />
                 </div>
               ) : companies.length === 0 ? (
-                <div>No data found</div>
+                <div className="font-medium w-full flex  text-center py-10 px-2">
+                  Start companies search by applying a filter
+                </div>
               ) : (
                 companies.map((company, index) => (
                   <tr key={index} className="border p-2">

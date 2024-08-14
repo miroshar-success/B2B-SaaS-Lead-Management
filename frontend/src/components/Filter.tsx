@@ -17,24 +17,20 @@ interface FilterConfig {
 
 interface FilterSidebarProps {
   showFilter: boolean;
+  url: string;
   setShowFilter: React.Dispatch<React.SetStateAction<boolean>>;
-  filters: { [key: string]: string };
-  handleFilterChange: (key: string, value: string) => void;
+  filters: { [key: string]: string | null };
+  handleFilterChange: (key: string, value: string | null) => void;
+  filterConfigs: FilterConfig[];
   clearFilters: () => void;
 }
-
-const filterConfigs: FilterConfig[] = [
-  { key: "firstName", label: "First Name" },
-  { key: "jobTitle", label: "Job Title" },
-  { key: "department", label: "Department" },
-  { key: "pastCompany", label: "Past Companies" },
-  // Add more filter fields here if needed
-];
 
 const FilterSidebar: React.FC<FilterSidebarProps> = ({
   clearFilters,
   handleFilterChange,
   filters,
+  url,
+  filterConfigs,
 }) => {
   const [collapsed, setCollapsed] = useState<{ [key: string]: boolean }>({});
   const [options, setOptions] = useState<{ [key: string]: FilterOption[] }>({});
@@ -63,7 +59,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
       }
 
       try {
-        const response = await axiosInstance.get("/leads/search", {
+        const response = await axiosInstance.get(`/${url}/search`, {
           params: {
             field: filterKey,
             value: search,
@@ -118,7 +114,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
   // Remove selected filter
   const removeFilter = (key: string) => {
-    handleFilterChange(key, "");
+    handleFilterChange(key, null);
   };
 
   // Render filter options
@@ -127,7 +123,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     return (
       <div
         className={`mb-4 ${
-          (!collapsed[filterKey] || filters[filterKey]) &&
+          (!collapsed[filterKey] || filters[filterKey + ".value"]) &&
           "border-2 border-primary rounded-md p-2"
         }`}
         key={filterKey}
@@ -156,13 +152,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
               <CiSearch className="cursor-pointer" />
             </div>
             {options[filterKey]?.length > 0 && (
-              <div className="absolute top-10 left-0 bg-white border rounded-md shadow-lg z-10 max-h-40 overflow-y-auto">
+              <div className="absolute top-8 left-0 bg-white w-full border rounded-md shadow-lg z-10 max-h-56 overflow-y-auto">
                 {options[filterKey].map((option) => (
                   <div
                     key={option.key}
                     className="p-2 border-b cursor-pointer"
                     onClick={() => {
-                      handleFilterChange(filterKey, option.label);
+                      handleFilterChange(filterKey + ".value", option.label);
                       // Clear options and search value on selection
                       setOptions((prevOptions) => ({
                         ...prevOptions,
@@ -182,12 +178,12 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
           </div>
         )}
         {/* Show selected filter if present */}
-        {filters[filterKey] && (
+        {filters[filterKey + ".value"] && (
           <div className="flex items-center mt-2 bg-gray-100 p-2 rounded-md">
-            <span className="text-sm">{filters[filterKey]}</span>
+            <span className="text-sm">{filters[filterKey + ".value"]}</span>
             <button
               className="ml-2 text-red-500 hover:text-red-700"
-              onClick={() => removeFilter(filterKey)}
+              onClick={() => removeFilter(filterKey + ".value")}
             >
               <FaTimes />
             </button>

@@ -31,26 +31,25 @@ export interface Lead {
   // Add other fields as needed
 }
 
+const filterConfigs = [
+  { key: "firstName", label: "First Name" },
+  { key: "country", label: "Location" },
+  { key: "jobTitle", label: "Job Title" },
+  { key: "department", label: "Department" },
+  { key: "pastCompany", label: "Past Companies" },
+  // Add more filter fields here if needed
+];
+
 const People: React.FC = () => {
   const [leads, setLeads] = useState<Lead[] | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(25);
   const [showFilter, setShowFilter] = useState(true);
   const [totalPages, setTotalPages] = useState(0);
-  const [filters, setFilters] = useState<{
-    country: string;
-    jobTitle: string;
-    department: string;
-    pastCompany: string;
-  }>({
-    country: "",
-    jobTitle: "",
-    department: "",
-    pastCompany: "",
-  });
+  const [filters, setFilters] = useState<{ [key: string]: string | null }>({});
 
   useEffect(() => {
     fetchLeads();
@@ -95,12 +94,14 @@ const People: React.FC = () => {
   //   setCurrentPage(1);
   // };
 
-  const handleFilterChange = (key: string, value: string) => {
+  const handleFilterChange = (key: string, value: string | null) => {
     setFilters({ ...filters, [key]: value });
     setCurrentPage(1);
   };
 
-  const clearFilter = () => {};
+  const clearFilter = () => {
+    setFilters({});
+  };
 
   return (
     <div className="flex gap-3 h-full w-full transition-all">
@@ -111,6 +112,8 @@ const People: React.FC = () => {
           handleFilterChange={handleFilterChange}
           setShowFilter={setShowFilter}
           showFilter={showFilter}
+          filterConfigs={filterConfigs}
+          url="leads"
         />
       </div>
       <div
@@ -211,7 +214,9 @@ const People: React.FC = () => {
                   <Loading />
                 </div>
               ) : leads.length === 0 ? (
-                <div>No data found</div>
+                <div className="font-medium w-full flex  text-center py-10 px-2">
+                  Start your people search by applying a filter
+                </div>
               ) : (
                 leads.map((lead, index) => (
                   <tr key={index} className="border p-2">
