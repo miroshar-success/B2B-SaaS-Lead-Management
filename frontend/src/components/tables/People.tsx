@@ -34,6 +34,7 @@ export interface Lead {
 const filterConfigs = [
   { key: "firstName", label: "First Name" },
   { key: "country", label: "Location" },
+  { key: "company", label: "Company" },
   { key: "jobTitle", label: "Job Title" },
   { key: "department", label: "Department" },
   { key: "pastCompany", label: "Past Companies" },

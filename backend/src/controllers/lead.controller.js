@@ -1,3 +1,4 @@
+const Company = require("../models/company.model");
 const Lead = require("../models/lead.model");
 const moment = require("moment");
 
@@ -22,7 +23,7 @@ exports.create = async (req, res) => {
       lastUpdated: req.body.lastUpdated || currentDate,
     },
     email: {
-      value: req.body.email,
+      value: req.body.email.split(",").map((email) => email.trim()),
       lastUpdated: req.body.lastUpdated || currentDate,
     },
     title: {
@@ -115,8 +116,7 @@ exports.findAll = async (req, res) => {
       search = "",
       filter = "{}",
     } = req.query;
-    // Convert filter to JSON
-
+    console.log(filter);
     // Search and Filter
     const searchRegex = new RegExp(search, "i");
     const searchConditions = {
@@ -133,8 +133,30 @@ exports.findAll = async (req, res) => {
         { "facebook.value": searchRegex },
         { "twitter.value": searchRegex },
       ],
-      ...filter,
     };
+
+    for (const [key, value] of Object.entries(filter)) {
+      if (key === "company.value") {
+        const company = await Company.findOne(
+          { "name.value": new RegExp(value, "i") },
+          { _id: 1 }
+        );
+        console.log(company);
+        if (company) {
+          // Use company ID for the filter
+          searchConditions.companyID = company._id.toString();
+        } else {
+          // If the company is not found, set an empty array to ensure no leads are returned
+          searchConditions.companyID = { $exists: false };
+        }
+      } else if (typeof value === "string") {
+        // Create a case-insensitive regex for the filter value
+        searchConditions[key] = new RegExp(value, "i");
+      } else {
+        // Directly apply non-string filters
+        searchConditions[key] = value;
+      }
+    }
 
     // Pagination and Sorting
     const options = {
@@ -359,17 +381,26 @@ exports.searchLeads = async (req, res) => {
         .json({ error: "Field and value are required for searching." });
     }
 
-    // Construct the search query using dynamic field access
-    const query = { [`${field}.value`]: new RegExp(value, "i") };
+    let query;
+    let distinctResults;
+    if (field === "company") {
+      // Lookup company by name to get the company ID
+      distinctResults = await Company.distinct("name.value", {
+        "name.value": new RegExp(value, "i"),
+      });
+    } else {
+      // Construct the search query using dynamic field access for other fields
+      query = { [`${field}.value`]: new RegExp(value, "i") };
+      distinctResults = await Lead.distinct(`${field}.value`, query);
+    }
 
-    // Parse the limit parameter or set a default
-    const resultLimit = parseInt(limit, 10) || 10; // Default limit is 10 if not provided or invalid
+    // Perform the search with distinct values
 
-    // Perform the search with a limit
-    const leads = await Lead.find(query).limit(resultLimit);
+    // Apply the limit to the distinct results
+    const limitedResults = distinctResults.slice(0, parseInt(limit, 10) || 10);
 
     // Return the matching leads
-    res.status(200).json(leads);
+    res.status(200).json(limitedResults);
   } catch (error) {
     console.error("Error searching leads:", error);
     res.status(500).json({ error: "An error occurred while searching leads." });

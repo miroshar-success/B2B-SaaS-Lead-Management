@@ -140,7 +140,6 @@ const processCSVData = async (csvData, fieldMappings) => {
     existingCompanies.map((company) => [company.linkedInUrl.value, company._id])
   );
 
-  console.log(companyMap);
   // Process leads in batches
   for (let i = 0; i < csvData.length; i += BATCH_SIZE) {
     const batch = csvData.slice(i, i + BATCH_SIZE);
@@ -160,7 +159,9 @@ const processCSVData = async (csvData, fieldMappings) => {
           lastUpdated: row[fieldMappings["Last Updated"]],
         },
         email: {
-          value: row[fieldMappings["Email"]],
+          value: row[fieldMappings["Email"]]
+            .split(",")
+            .map((email) => email.trim()),
           lastUpdated: row[fieldMappings["Last Updated"]],
         },
         firstPhone: {
@@ -230,7 +231,9 @@ const processCSVData = async (csvData, fieldMappings) => {
 
       // Lead Data Processing
       if (!leadData.linkedInUrl.value) {
-        const filter = { "email.value": leadData.email.value };
+        const filter = {
+          "email.value": { $in: leadData.email.value },
+        };
         const update = { $set: leadData };
         const upsert = true;
         leadBulkOperations.push({
@@ -244,13 +247,11 @@ const processCSVData = async (csvData, fieldMappings) => {
       } else if (leadData.firstName.value || leadData.lastName.value) {
         const leadFilter = {
           $or: [
-            { "email.value": leadData.email.value },
+            { "email.value": { $in: leadData.email.value } },
             { "linkedInUrl.value": leadData.linkedInUrl.value },
           ],
         };
-        const leadUpdate = {
-          $set: leadData,
-        };
+        const leadUpdate = { $set: leadData };
         leadBulkOperations.push({
           updateOne: {
             filter: leadFilter,

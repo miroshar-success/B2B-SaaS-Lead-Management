@@ -33,7 +33,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   filterConfigs,
 }) => {
   const [collapsed, setCollapsed] = useState<{ [key: string]: boolean }>({});
-  const [options, setOptions] = useState<{ [key: string]: FilterOption[] }>({});
+  const [options, setOptions] = useState<{ [key: string]: string[] }>({});
   const [searchValue, setSearchValue] = useState<{ [key: string]: string }>({});
   const [limit] = useState(10); // Default limit
 
@@ -66,10 +66,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
             limit,
           },
         });
-        const results = response.data.map((item: any) => ({
-          key: item._id,
-          label: item[filterKey]?.value || "",
-        }));
+        const results = response.data;
+        // .map((item: any) => ({
+        //   key: item._id,
+        //   label: item[filterKey]?.value || "",
+        // }));
         setOptions((prevOptions) => ({
           ...prevOptions,
           [filterKey]: results,
@@ -155,10 +156,10 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
               <div className="absolute top-8 left-0 bg-white w-full border rounded-md shadow-lg z-10 max-h-56 overflow-y-auto">
                 {options[filterKey].map((option) => (
                   <div
-                    key={option.key}
+                    key={option}
                     className="p-2 border-b cursor-pointer"
                     onClick={() => {
-                      handleFilterChange(filterKey + ".value", option.label);
+                      handleFilterChange(filterKey + ".value", option);
                       // Clear options and search value on selection
                       setOptions((prevOptions) => ({
                         ...prevOptions,
@@ -170,7 +171,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                       }));
                     }}
                   >
-                    {option.label}
+                    {option}
                   </div>
                 ))}
               </div>

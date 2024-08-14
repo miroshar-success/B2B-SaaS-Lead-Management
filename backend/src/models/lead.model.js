@@ -5,12 +5,17 @@ const FieldSchema = new mongoose.Schema({
   lastUpdated: { type: Date, default: Date.now },
 });
 
+const EmailSchema = new mongoose.Schema({
+  value: { type: [String] },
+  lastUpdated: { type: Date, default: Date.now },
+});
+
 const LeadSchema = new mongoose.Schema(
   {
     linkedInUrl: FieldSchema,
     firstName: FieldSchema,
     lastName: FieldSchema,
-    email: FieldSchema,
+    email: EmailSchema,
     firstPhone: FieldSchema,
     title: FieldSchema,
     jobTitle: FieldSchema,
