@@ -190,14 +190,12 @@ exports.searchCompanies = async (req, res) => {
     // Construct the search query using dynamic field access
     const query = { [`${field}.value`]: new RegExp(value, "i") };
 
-    // Parse the limit parameter or set a default
-    const resultLimit = parseInt(limit, 10) || 10; // Default limit is 10 if not provided or invalid
-
     // Perform the search with a limit
-    const companies = await Company.find(query).limit(resultLimit);
+    const companies = await Company.distinct(`${field}.value`, query);
+    const limitedResults = companies.slice(0, parseInt(limit, 10) || 10);
 
     // Return the matching companies
-    res.status(200).json(companies);
+    res.status(200).json(limitedResults);
   } catch (error) {
     console.error("Error searching companies:", error);
     res

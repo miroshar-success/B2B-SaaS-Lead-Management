@@ -5,11 +5,6 @@ import { GoTriangleUp, GoTriangleDown } from "react-icons/go";
 import { FaTimes } from "react-icons/fa";
 import { axiosInstance } from "../context/Auth";
 
-interface FilterOption {
-  key: string;
-  label: string;
-}
-
 interface FilterConfig {
   key: string;
   label: string;
