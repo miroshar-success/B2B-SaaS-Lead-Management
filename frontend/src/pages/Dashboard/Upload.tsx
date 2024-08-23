@@ -11,21 +11,21 @@ const leadFields = [
   "First Name",
   "Last Name",
   "Email",
-  "First Phone",
-  "Title",
+  "Phone",
+  // "Title",
   "Job Title",
-  "Seniority",
+  "Management  Level",
   "Departments",
-  "Work Phone",
-  "Home Phone",
-  "Mobile Phone",
-  "Other Phone",
+  // "Work Phone",
+  // "Home Phone",
+  // "Mobile Phone",
+  // "Other Phone",
   "City",
   "State",
   "Country",
   "Facebook",
   "Twitter",
-  "Past Companies",
+  // "Past Companies",
   "Last Updated",
 ];
 
@@ -36,7 +36,7 @@ const companyFields = [
   "Phone numbers",
   "Address",
   "Employees",
-  "Retail Location",
+  // "Retail Location",
   "Industry",
   "Keywords",
   "Facebook",
@@ -45,12 +45,12 @@ const companyFields = [
   "State",
   "Country",
   "SEO Description",
-  "Technologies",
-  "Annual Revenue",
-  "Total Funding",
-  "Latest Funding",
-  "Latest Funding Amount",
-  "Last Raised At",
+  // "Technologies",
+  // "Annual Revenue",
+  // "Total Funding",
+  // "Latest Funding",
+  // "Latest Funding Amount",
+  // "Last Raised At",
 ];
 
 const Upload = () => {
@@ -65,12 +65,40 @@ const Upload = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
+
+      // Validate file type
+      if (file.type !== "text/csv") {
+        setError("Invalid file type. Please upload a CSV file.");
+        return;
+      }
+
+      // Validate file size (e.g., max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        setError("File is too large. Please upload a file smaller than 5MB.");
+        return;
+      }
+
       Papa.parse(file, {
         header: true,
         skipEmptyLines: true,
         complete: (results: any) => {
+          // Validate content by checking required fields in the headers
+          const requiredHeaders = ["First Name", "Last Name", "Email"];
+          const headers = results.meta.fields || [];
+          const missingHeaders = requiredHeaders.filter(
+            (header) => !headers.includes(header)
+          );
+
+          if (missingHeaders.length > 0) {
+            setError(
+              `CSV is missing required headers: ${missingHeaders.join(", ")}`
+            );
+            return;
+          }
+
           setCSVData(results.data as CSVRow[]);
-          setCsvHeaders(results.meta.fields || []);
+          setCsvHeaders(headers);
         },
       });
     }

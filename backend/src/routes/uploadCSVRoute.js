@@ -1,15 +1,18 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const dbConnect = require('../utils/dbConnect');
-const { processCSVData } = require('../controllers/csvController');
+const { processCSVData } = require("../controllers/csvController");
+const userController = require("../controllers/user.controller");
 
-router.post('/upload-csv', async (req, res) => {
-  await dbConnect();
+router.post(
+  "/upload-csv",
+  userController.authenticate,
+  userController.authorize("admin", "super_admin"),
+  async (req, res) => {
+    const { csvData, fieldMappings } = req.body;
+    const result = await processCSVData(csvData, fieldMappings);
 
-  const { csvData, fieldMappings } = req.body;
-  const result = await processCSVData(csvData, fieldMappings);
-
-  res.status(200).json(result);
-});
+    res.status(200).json(result);
+  }
+);
 
 module.exports = router;

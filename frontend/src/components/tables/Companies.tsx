@@ -33,6 +33,23 @@ export interface Company {
 const filterConfigs = [
   { key: "name", label: "Name" },
   { key: "country", label: "Location" },
+  {
+    key: "employees",
+    label: "Employees",
+    customOptions: [
+      "1-10",
+      "11-20",
+      "21-50",
+      "51-100",
+      "101-200",
+      "201-500",
+      "501-1000",
+      "1001-2000",
+      "2001-5000",
+      "5001-10000",
+      "100001+",
+    ],
+  },
   { key: "industry", label: "Industry" },
   // Add more filter fields here if needed
 ];
@@ -46,7 +63,14 @@ const Companies: React.FC = () => {
   const [pageSize] = useState(25);
   const [showFilter, setShowFilter] = useState(true);
   const [totalPages, setTotalPages] = useState(0);
-  const [filters, setFilters] = useState<{ [key: string]: string | null }>({});
+  const [filters, setFilters] = useState<{
+    [key: string]: {
+      exclude: string | null;
+      include: string | null;
+      isKnown: boolean;
+      isNotKnown: boolean;
+    };
+  }>({});
 
   useEffect(() => {
     fetchLeads();
@@ -61,7 +85,7 @@ const Companies: React.FC = () => {
           order: sortOrder,
           page: currentPage,
           size: pageSize,
-          filter: filters,
+          filter: JSON.stringify(filters),
         },
       });
       console.log(response.data);
@@ -92,12 +116,25 @@ const Companies: React.FC = () => {
   //   setCurrentPage(1);
   // };
 
-  const handleFilterChange = (key: string, value: string | null) => {
-    setFilters({ ...filters, [key]: value });
+  const handleFilterChange = (
+    key: string,
+    type: string,
+    value: string | boolean | null
+  ) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [key]: {
+        ...prevFilters[key],
+        [type]: value,
+      },
+    }));
+
     setCurrentPage(1);
   };
 
-  const clearFilter = () => {};
+  const clearFilter = () => {
+    setFilters({});
+  };
 
   return (
     <div className="flex  w-full gap-3">

@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/Auth";
-import Loading from "../components/Loading";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/Auth";
+import Loading from "../../components/Loading";
 
 function SignIn() {
   const { user, login, loading, error } = useAuth();
@@ -82,11 +82,12 @@ function SignIn() {
                   </button>
                   {error && <div className="text-red-500">{error}</div>}
                 </div>
+
                 <div>
                   <p className="text-center text-xs text-gray-500">
-                    Not Registered?{" "}
+                    Don't have an account?{" "}
                     <span className="text-blue-500">
-                      <a href="#">Contact Admin</a>
+                      <Link to="/signup">Sign Up</Link>
                     </span>
                   </p>
                 </div>

@@ -1,5 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
-import SignIn from "./pages/SignIn";
+import SignIn from "./pages/auth/SignIn";
 import Layout from "./pages/Dashboard/Layout";
 import Dashboard from "./pages/Dashboard";
 import Leads from "./pages/Dashboard/Leads";
@@ -12,6 +12,8 @@ import Company from "./pages/Dashboard/Company";
 import Plans from "./pages/Dashboard/Plans";
 import Profile from "./pages/Dashboard/Profile";
 import PaymentConfirmation from "./pages/Dashboard/PaymentConfirmation";
+import SignUp from "./pages/auth/Signup";
+import AdminRoute from "./components/AdminRoute";
 
 const router = createBrowserRouter([
   {
@@ -20,9 +22,9 @@ const router = createBrowserRouter([
     children: [
       { path: "", element: <Dashboard /> },
       { path: "search", element: <Leads /> },
-      { path: "users", element: <Users /> },
-      { path: "upload", element: <Upload /> },
-      { path: "add-user", element: <AddUser /> },
+      { path: "users", element: <AdminRoute element={<Users />} /> },
+      { path: "upload", element: <AdminRoute element={<Upload />} /> },
+      { path: "add-user", element: <AdminRoute element={<AddUser />} /> },
       { path: "summary", element: <Summary /> },
       { path: "plans", element: <Plans /> },
       { path: "profile", element: <Profile /> },
@@ -31,6 +33,7 @@ const router = createBrowserRouter([
     ],
   },
   { path: "/signin", element: <SignIn /> },
+  { path: "/signup", element: <SignUp /> },
   { path: "/company/:id", element: <Company /> },
 ]);
 

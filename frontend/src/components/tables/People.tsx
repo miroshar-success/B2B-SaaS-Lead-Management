@@ -33,11 +33,28 @@ export interface Lead {
 
 const filterConfigs = [
   { key: "firstName", label: "First Name" },
+  { key: "jobTitle", label: "Job Title" },
+  {
+    key: "level",
+    label: "Management Level",
+    customOptions: [
+      "Owner",
+      "Founder",
+      "C suite",
+      "Partner",
+      "Vp",
+      "Head",
+      "Director",
+      "Manager",
+      "Senior",
+      "Entry",
+      "Intern",
+    ],
+  },
   { key: "country", label: "Location" },
   { key: "company", label: "Company" },
-  { key: "jobTitle", label: "Job Title" },
+  { key: "gender", label: "Gender", customOptions: ["male", "female"] },
   { key: "department", label: "Department" },
-  { key: "pastCompany", label: "Past Companies" },
   // Add more filter fields here if needed
 ];
 
@@ -50,7 +67,14 @@ const People: React.FC = () => {
   const [pageSize] = useState(25);
   const [showFilter, setShowFilter] = useState(true);
   const [totalPages, setTotalPages] = useState(0);
-  const [filters, setFilters] = useState<{ [key: string]: string | null }>({});
+  const [filters, setFilters] = useState<{
+    [key: string]: {
+      exclude: string | null;
+      include: string | null;
+      isKnown: boolean;
+      isNotKnown: boolean;
+    };
+  }>({});
 
   useEffect(() => {
     fetchLeads();
@@ -65,7 +89,7 @@ const People: React.FC = () => {
           order: sortOrder,
           page: currentPage,
           size: pageSize,
-          filter: filters,
+          filter: JSON.stringify(filters),
         },
       });
       setLeads(response.data.leads);
@@ -95,8 +119,19 @@ const People: React.FC = () => {
   //   setCurrentPage(1);
   // };
 
-  const handleFilterChange = (key: string, value: string | null) => {
-    setFilters({ ...filters, [key]: value });
+  const handleFilterChange = (
+    key: string,
+    type: string,
+    value: string | boolean | null
+  ) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [key]: {
+        ...prevFilters[key],
+        [type]: value,
+      },
+    }));
+
     setCurrentPage(1);
   };
 

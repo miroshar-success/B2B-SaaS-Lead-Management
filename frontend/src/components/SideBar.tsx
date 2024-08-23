@@ -25,6 +25,14 @@ const sidebars = [
     icon: <FaTasks />,
     path: "/search",
   },
+  // {
+  //   name: "Add User",
+  //   icon: <FaUserPlus />,
+  //   path: "/add-user",
+  // },
+];
+
+const adminNavs = [
   {
     name: "Users",
     icon: <FaUsers />,
@@ -35,15 +43,10 @@ const sidebars = [
     icon: <FaUpload />,
     path: "/upload",
   },
-  // {
-  //   name: "Add User",
-  //   icon: <FaUserPlus />,
-  //   path: "/add-user",
-  // },
 ];
 
 const SideBar: React.FC<Props> = ({ isMenuVisible, onMenuToggle }) => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -77,6 +80,26 @@ const SideBar: React.FC<Props> = ({ isMenuVisible, onMenuToggle }) => {
               </span>
             </NavLink>
           ))}
+          {user?.role === "admin" &&
+            adminNavs.map((item) => (
+              <NavLink
+                key={item.name}
+                to={item.path}
+                onClick={onMenuToggle}
+                className={({ isActive }) =>
+                  `${
+                    isActive
+                      ? "text-white bg-primary rounded-md font-medium"
+                      : "text-primary font-medium hover:bg-primary hover:bg-opacity-15"
+                  } flex items-center gap-5 text-md rounded mt-1 p-2`
+                }
+              >
+                {item.icon}
+                <span className=" capitalize tracking-wider md:pr-5">
+                  {item.name}
+                </span>
+              </NavLink>
+            ))}
           <div className="rounded  my-1 p-2 text-white bg-green-500 ">
             <NavLink
               to="/plans"

@@ -1,5 +1,9 @@
 const Company = require("../models/company.model");
 
+const escapeRegExp = (string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // Escape special characters for use in a regex
+};
+
 // Create and save a new company
 exports.create = async (req, res) => {
   try {
@@ -60,7 +64,7 @@ exports.findAll = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10,
+      limit = 25,
       sortBy = "createdAt",
       order = "asc",
       search = "",
@@ -68,9 +72,10 @@ exports.findAll = async (req, res) => {
     } = req.query;
 
     // Convert filter to JSON
+    const parsedFilter = JSON.parse(filter);
 
     // Search and Filter
-    const searchRegex = new RegExp(search, "i");
+    const searchRegex = new RegExp(escapeRegExp(search), "i");
     const searchConditions = {
       $or: [
         { "firstName.value": searchRegex },
@@ -85,8 +90,48 @@ exports.findAll = async (req, res) => {
         { "facebook.value": searchRegex },
         { "twitter.value": searchRegex },
       ],
-      ...filter,
     };
+
+    // Apply filter conditions for each field with include and exclude values
+    for (const [key, filterValues] of Object.entries(parsedFilter)) {
+      const { include = "", exclude = "", isKnown, isNotKnown } = filterValues;
+      console.log(include, exclude, isKnown, isNotKnown);
+
+      // Handle 'is known' filter
+      if (isKnown === true) {
+        searchConditions[key] = { $exists: true, $ne: null };
+        continue; // Skip to next filter, ignoring include/exclude
+      }
+      console.log("isknown false");
+      // Handle 'is not known' filter
+      if (isNotKnown === true) {
+        searchConditions[key] = { $exists: false };
+        continue; // Skip to next filter, ignoring include/exclude
+      }
+      console.log("both false");
+
+      const includeArray = include
+        .split(",")
+        .map((value) => escapeRegExp(value.trim()))
+        .filter(Boolean);
+      const excludeArray = exclude
+        .split(",")
+        .map((value) => escapeRegExp(value.trim()))
+        .filter(Boolean);
+      console.log(includeArray, excludeArray);
+
+      if (includeArray.length > 0) {
+        searchConditions[key] = {
+          $in: includeArray.map((val) => new RegExp(val, "i")),
+        };
+      }
+      if (excludeArray.length > 0) {
+        searchConditions[key] = {
+          ...(searchConditions[key] || {}),
+          $nin: excludeArray.map((val) => new RegExp(val, "i")),
+        };
+      }
+    }
 
     // Pagination and Sorting
     const options = {
@@ -181,17 +226,21 @@ exports.searchCompanies = async (req, res) => {
     const { field, value, limit } = req.query;
 
     // Validate the input
-    if (!field || !value) {
+    if (!field) {
       return res
         .status(400)
-        .json({ error: "Field and value are required for searching." });
+        .json({ error: "Field is required for searching." });
     }
 
     // Construct the search query using dynamic field access
-    const query = { [`${field}.value`]: new RegExp(value, "i") };
-
+    const query = { [`${field}.value`]: new RegExp(escapeRegExp(value), "i") };
+    let companies;
     // Perform the search with a limit
-    const companies = await Company.distinct(`${field}.value`, query);
+    if (value) {
+      companies = await Company.distinct(`${field}.value`, query);
+    } else {
+      companies = await Company.distinct(`${field}.value`);
+    }
     const limitedResults = companies.slice(0, parseInt(limit, 10) || 10);
 
     // Return the matching companies

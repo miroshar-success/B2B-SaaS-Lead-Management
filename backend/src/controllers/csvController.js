@@ -1,5 +1,13 @@
 const Lead = require("../models/lead.model");
 const Company = require("../models/company.model");
+const sanitize = require("sanitize-html");
+
+const sanitizeValue = (value) => {
+  return sanitize(value, {
+    allowedTags: [],
+    allowedAttributes: {},
+  });
+};
 
 const calculateTrustScore = (date) => {
   const today = new Date();
@@ -21,88 +29,60 @@ const processCSVData = async (csvData, fieldMappings) => {
   for (const row of csvData) {
     const companyData = {
       name: {
-        value: row[fieldMappings["Company Name"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
+        value: sanitizeValue(row[fieldMappings["Company Name"]]),
+        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
       linkedInUrl: {
-        value: row[fieldMappings["Company Linkedin Url"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
+        value: sanitizeValue(row[fieldMappings["Company Linkedin Url"]]),
+        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
       address: {
-        value: row[fieldMappings["Address"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
+        value: sanitizeValue(row[fieldMappings["Address"]]),
+        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
       website: {
-        value: row[fieldMappings["Company Website"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
+        value: sanitizeValue(row[fieldMappings["Company Website"]]),
+        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
       phone: {
-        value: row[fieldMappings["Phone numbers"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
+        value: sanitizeValue(row[fieldMappings["Phone numbers"]]),
+        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
       employees: {
-        value: row[fieldMappings["Employees"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
-      },
-      retailLocation: {
-        value: row[fieldMappings["Retail Location"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
+        value: sanitizeValue(row[fieldMappings["Employees"]]),
+        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
       industry: {
-        value: row[fieldMappings["Industry"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
+        value: sanitizeValue(row[fieldMappings["Industry"]]),
+        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
       keywords: {
-        value: row[fieldMappings["Keywords"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
+        value: sanitizeValue(row[fieldMappings["Keywords"]]),
+        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
       facebook: {
-        value: row[fieldMappings["Facebook"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
+        value: sanitizeValue(row[fieldMappings["Facebook"]]),
+        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
       twitter: {
-        value: row[fieldMappings["Twitter"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
+        value: sanitizeValue(row[fieldMappings["Twitter"]]),
+        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
       city: {
-        value: row[fieldMappings["City"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
+        value: sanitizeValue(row[fieldMappings["City"]]),
+        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
       state: {
-        value: row[fieldMappings["State"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
+        value: sanitizeValue(row[fieldMappings["State"]]),
+        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
       country: {
-        value: row[fieldMappings["Country"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
+        value: sanitizeValue(row[fieldMappings["Country"]]),
+        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
       seoDescription: {
-        value: row[fieldMappings["SEO Description"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
-      },
-      technologies: {
-        value: row[fieldMappings["Technologies"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
-      },
-      annualRevenue: {
-        value: row[fieldMappings["Annual Revenue"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
-      },
-      totalFunding: {
-        value: row[fieldMappings["Total Funding"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
-      },
-      latestFunding: {
-        value: row[fieldMappings["Latest Funding"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
-      },
-      latestFundingAmount: {
-        value: row[fieldMappings["Latest Funding Amount"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
-      },
-      lastRaisedAt: {
-        value: row[fieldMappings["Last Raised At"]],
-        lastUpdated: row[fieldMappings["Last Updated"]],
+        value: sanitizeValue(row[fieldMappings["SEO Description"]]),
+        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
     };
 
@@ -147,85 +127,65 @@ const processCSVData = async (csvData, fieldMappings) => {
     for (const row of batch) {
       const leadData = {
         linkedInUrl: {
-          value: row[fieldMappings["LinkedIn UrL"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
+          value: sanitizeValue(row[fieldMappings["LinkedIn UrL"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
         firstName: {
-          value: row[fieldMappings["First Name"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
+          value: sanitizeValue(row[fieldMappings["First Name"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
         lastName: {
-          value: row[fieldMappings["Last Name"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
+          value: sanitizeValue(row[fieldMappings["Last Name"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
         email: {
-          value: row[fieldMappings["Email"]]
+          value: sanitizeValue(row[fieldMappings["Email"]])
             .split(",")
             .map((email) => email.trim()),
-          lastUpdated: row[fieldMappings["Last Updated"]],
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
-        firstPhone: {
-          value: row[fieldMappings["First Phone"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
-        },
-        title: {
-          value: row[fieldMappings["Title"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
+        phone: {
+          value: sanitizeValue(row[fieldMappings["Phone"]])
+            .split(",")
+            .map((email) => email.trim()),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
         jobTitle: {
-          value: row[fieldMappings["Job Title"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
+          value: sanitizeValue(row[fieldMappings["Job Title"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
-        seniority: {
-          value: row[fieldMappings["Seniority"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
+        level: {
+          value: sanitizeValue(row[fieldMappings["Management Level"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
         departments: {
-          value: row[fieldMappings["Departments"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
-        },
-        workPhone: {
-          value: row[fieldMappings["Work Phone"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
-        },
-        homePhone: {
-          value: row[fieldMappings["Home Phone"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
-        },
-        mobilePhone: {
-          value: row[fieldMappings["Mobile Phone"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
-        },
-        otherPhone: {
-          value: row[fieldMappings["Other Phone"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
+          value: sanitizeValue(row[fieldMappings["Departments"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
         city: {
-          value: row[fieldMappings["City"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
+          value: sanitizeValue(row[fieldMappings["City"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
         state: {
-          value: row[fieldMappings["State"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
+          value: sanitizeValue(row[fieldMappings["State"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
         country: {
-          value: row[fieldMappings["Country"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
+          value: sanitizeValue(row[fieldMappings["Country"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
         facebook: {
-          value: row[fieldMappings["Facebook"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
+          value: sanitizeValue(row[fieldMappings["Facebook"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
         twitter: {
-          value: row[fieldMappings["Twitter"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
-        },
-        pastCompanies: {
-          value: row[fieldMappings["Past Companies"]],
-          lastUpdated: row[fieldMappings["Last Updated"]],
+          value: sanitizeValue(row[fieldMappings["Twitter"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
         companyID:
-          companyMap.get(row[fieldMappings["Company Linkedin Url"]]) || "",
+          companyMap.get(
+            sanitizeValue(row[fieldMappings["Company Linkedin Url"]])
+          ) || "",
         isComplete: !!row[fieldMappings["LinkedIn UrL"]],
       };
 
