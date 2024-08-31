@@ -37,7 +37,7 @@ const CompanySchema = new mongoose.Schema(
     website: FieldSchema,
     phone: ArraySchema,
     address: FieldSchema,
-    employees: LevelSchema,
+    employees: FieldSchema,
     location: FieldSchema,
     industry: FieldSchema,
     keywords: FieldSchema,

@@ -45,7 +45,9 @@ const processCSVData = async (csvData, fieldMappings) => {
         lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
       phone: {
-        value: sanitizeValue(row[fieldMappings["Phone numbers"]]),
+        value: sanitizeValue(row[fieldMappings["Phone"]])
+          .split(",")
+          .map((phone) => phone.trim()),
         lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
       },
       employees: {
@@ -147,7 +149,7 @@ const processCSVData = async (csvData, fieldMappings) => {
         phone: {
           value: sanitizeValue(row[fieldMappings["Phone"]])
             .split(",")
-            .map((email) => email.trim()),
+            .map((phone) => phone.trim()),
           lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
         jobTitle: {

@@ -73,18 +73,18 @@ const Upload = () => {
       }
 
       // Validate file size (e.g., max 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      if (file.size > maxSize) {
-        setError("File is too large. Please upload a file smaller than 5MB.");
-        return;
-      }
+      // const maxSize = 5 * 1024 * 1024; // 5MB
+      // if (file.size > maxSize) {
+      //   setError("File is too large. Please upload a file smaller than 5MB.");
+      //   return;
+      // }
 
       Papa.parse(file, {
         header: true,
         skipEmptyLines: true,
         complete: (results: any) => {
           // Validate content by checking required fields in the headers
-          const requiredHeaders = ["First Name", "Last Name", "Email"];
+          const requiredHeaders: any[] = [];
           const headers = results.meta.fields || [];
           const missingHeaders = requiredHeaders.filter(
             (header) => !headers.includes(header)
@@ -118,9 +118,9 @@ const Upload = () => {
       return;
     }
 
-    const requiredFields = ["First Name", "Last Name"];
+    const requiredFields: any = [];
     const missingFields = requiredFields.filter(
-      (field) => !fieldMappings[field]
+      (field: string | number) => !fieldMappings[field]
     );
 
     if (missingFields.length > 0) {
@@ -128,15 +128,15 @@ const Upload = () => {
       return;
     }
 
-    const invalidRows = csvData.filter(
-      (row) =>
-        !row[fieldMappings["First Name"]] || !row[fieldMappings["Last Name"]]
-    );
+    // const invalidRows = csvData.filter(
+    //   (row) =>
+    //     !row[fieldMappings["First Name"]] || !row[fieldMappings["Last Name"]]
+    // );
 
-    if (invalidRows.length > 0) {
-      setError("CSV contains rows with missing first name or last name");
-      return;
-    }
+    // if (invalidRows.length > 0) {
+    //   setError("CSV contains rows with missing first name or last name");
+    //   return;
+    // }
 
     startUpload(csvData, fieldMappings);
   };
@@ -153,6 +153,7 @@ const Upload = () => {
           className="mb-4"
         />
 
+        {error && <div className="text-red-500">{error}</div>}
         <div className="mb-4">
           <h2 className="text-xl font-semibold">Lead Info:</h2>
           {leadFields.map((field, index) => (
