@@ -101,6 +101,40 @@ const AuthProvider = (props: ContainerProps) => {
     }
   };
 
+  const accessEmails = async (leadIds: string[]) => {
+    try {
+      const response = await axiosInstance.post(`/users/leads/emails`, {
+        leadIds,
+      });
+
+      // Return the accessed emails
+      return response.data.emails;
+    } catch (error: any) {
+      console.error(
+        "Error accessing emails:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  };
+
+  const accessPhones = async (leadIds: string[]) => {
+    try {
+      const response = await axiosInstance.post(`/users/leads/phones`, {
+        leadIds,
+      });
+
+      // Return the accessed phones
+      return response.data.phones;
+    } catch (error: any) {
+      console.error(
+        "Error accessing phones:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem("token");
@@ -118,6 +152,8 @@ const AuthProvider = (props: ContainerProps) => {
         setUser,
         login,
         register,
+        accessEmails,
+        accessPhones,
         logout,
       }}
     >

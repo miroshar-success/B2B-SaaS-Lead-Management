@@ -8,6 +8,12 @@ export type AuthContextType = {
   setUser: React.Dispatch<SetStateAction<User | null>>;
   login: LoginFunction;
   register: RegisterFunction;
+  accessEmails: (
+    value: string[]
+  ) => Promise<{ leadId: string; email: string[] }[]>;
+  accessPhones: (
+    value: string[]
+  ) => Promise<{ leadId: string; phone: string[] }[]>;
   logout: () => void;
 };
 

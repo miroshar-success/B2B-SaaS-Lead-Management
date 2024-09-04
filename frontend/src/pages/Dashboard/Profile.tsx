@@ -114,19 +114,23 @@ const Profile: React.FC = () => {
                         {transaction.type}
                       </p>
                       <p className="text-sm text-gray-400">
-                        {moment(transaction.createdAt).format("")}
+                        {moment(transaction.createdAt).calendar()}
                       </p>
                     </div>
                     <div>
                       <p
                         className={`${
-                          transaction.type === "Withdrawal"
-                            ? "text-red-500"
-                            : "text-green-500"
+                          transaction.type === "Deposit"
+                            ? "text-green-500"
+                            : "text-red-500"
                         } font-semibold`}
                       >
-                        {transaction.type === "Withdrawal" ? "-" : "+"}$
+                        {transaction.type === "Deposit" && "+"}
+                        {transaction.type === "Withdrawal" && "-"}
                         {transaction.amount}
+                        {transaction.type !== "Withdrawal" &&
+                          transaction.type !== "Deposit" &&
+                          " unit"}
                       </p>
                       <p className="text-sm text-gray-400">
                         {transaction.status}

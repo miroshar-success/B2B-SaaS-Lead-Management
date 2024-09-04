@@ -13,9 +13,10 @@ const transactionSchema = new Schema(
     providerId: { type: String },
     type: {
       type: String,
-      enum: ["Deposit", "Withdrawal"],
+      enum: ["Deposit", "Withdrawal", "Email", "Phone"],
       required: true,
     },
+    meta: { leadIds: { type: mongoose.Schema.Types.ObjectId, ref: "Lead" } },
   },
   {
     timestamps: true,

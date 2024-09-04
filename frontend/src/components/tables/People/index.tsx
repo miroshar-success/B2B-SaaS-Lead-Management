@@ -5,18 +5,19 @@ import {
   FaSort,
   FaFilter,
   FaLinkedinIn,
-  FaPhone,
-  FaEnvelope,
   FaLink,
   FaFacebookF,
   FaTwitter,
 } from "react-icons/fa";
-import { axiosInstance } from "../../context/Auth";
-import Filter from "../../components/Filter";
+import Filter from "../../Filter";
 import { Link } from "react-router-dom";
-import Pagination from "../../components/Pagination";
-import Loading from "../../components/Loading";
-import { Company } from "./Companies";
+import Pagination from "../../Pagination";
+import Loading from "../../Loading";
+import { Company } from "../Companies";
+import AccessEmails from "./AccessEmails";
+import { axiosInstance } from "../../../context/Auth";
+import AccessPhones from "./AccessPhones";
+import { linkedInLink } from "../../../utils/utils";
 
 export interface Lead {
   _id: string;
@@ -53,6 +54,7 @@ const filterConfigs = [
   },
   { key: "country", label: "Location" },
   { key: "company", label: "Company" },
+  { key: "industry", label: "Industry" },
   { key: "gender", label: "Gender", customOptions: ["male", "female"] },
   { key: "department", label: "Department" },
   // Add more filter fields here if needed
@@ -75,6 +77,7 @@ const People: React.FC = () => {
       isNotKnown: boolean;
     };
   }>({});
+  const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
 
   useEffect(() => {
     fetchLeads();
@@ -139,6 +142,27 @@ const People: React.FC = () => {
     setFilters({});
   };
 
+  const handleSelectAllChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    if (leads) {
+      if (checked) {
+        // Select all leads
+        setSelectedLeads(leads.map((lead) => lead._id));
+      } else {
+        // Deselect all leads
+        setSelectedLeads([]);
+      }
+    }
+  };
+
+  const handleCheckboxChange = (leadId: string) => {
+    setSelectedLeads((prevSelectedLeads) =>
+      prevSelectedLeads.includes(leadId)
+        ? prevSelectedLeads.filter((id) => id !== leadId)
+        : [...prevSelectedLeads, leadId]
+    );
+  };
+
   return (
     <div className="flex gap-3 h-full w-full transition-all">
       <div className={`${showFilter ? "w-1/5" : "w-0"}`}>
@@ -194,11 +218,16 @@ const People: React.FC = () => {
           <table className="min-w-full bg-white">
             <thead className="border sticky w-full -top-1 z-20 h-full bg-white">
               <tr>
-                <th
-                  onClick={() => handleSort("firstName")}
-                  className="cursor-pointer sticky left-0 bg-white  "
-                >
-                  <div className="flex items-center gap-2 ">
+                <th className="cursor-pointer sticky left-0 bg-white flex px-2 mt-2  ">
+                  <input
+                    type="checkbox"
+                    className="mr-2 "
+                    onChange={handleSelectAllChange}
+                  />
+                  <div
+                    onClick={() => handleSort("firstName")}
+                    className="flex items-center gap-2 "
+                  >
                     Name <FaSort />
                   </div>
                 </th>
@@ -257,7 +286,12 @@ const People: React.FC = () => {
                 leads.map((lead, index) => (
                   <tr key={index} className="border p-2">
                     <td className="font-medium capitalize p-2  flex items-start sticky left-0 bg-white">
-                      <input type="checkbox" className="mr-2 mt-2" />
+                      <input
+                        type="checkbox"
+                        className="mr-2 mt-2"
+                        checked={selectedLeads.includes(lead._id)}
+                        onChange={() => handleCheckboxChange(lead._id)}
+                      />
                       <div>
                         <Link
                           className={`whitespace-nowrap text-blue-400`}
@@ -266,7 +300,7 @@ const People: React.FC = () => {
                           {lead.firstName.value + " " + lead.lastName.value}
                         </Link>
                         <Link
-                          to={`https://${lead?.linkedInUrl?.value}`}
+                          to={linkedInLink(lead?.linkedInUrl?.value)}
                           aria-label="LinkedIn"
                           className="text-blue-700 hover:text-blue-900"
                         >
@@ -300,7 +334,10 @@ const People: React.FC = () => {
                           )}
                           {lead?.companyID.linkedInUrl.value && (
                             <Link
-                              to={`https://${lead?.companyID?.linkedInUrl?.value}`}
+                              to={linkedInLink(
+                                lead?.companyID?.linkedInUrl?.value,
+                                true
+                              )}
                               aria-label="LinkedIn"
                               className="text-blue-700 hover:text-blue-900"
                             >
@@ -331,14 +368,10 @@ const People: React.FC = () => {
                       </div>
                     </td>
                     <td>
-                      <button className="flex items-center gap-2 border p-2 rounded-md mx-2 whitespace-nowrap">
-                        <FaEnvelope /> Access email
-                      </button>
+                      <AccessEmails leadId={[lead._id]} />
                     </td>
                     <td>
-                      <button className="flex items-center gap-2 border p-2 rounded-md mx-2 whitespace-nowrap">
-                        <FaPhone /> Access Mobile
-                      </button>
+                      <AccessPhones leadId={[lead._id]} />
                     </td>
                     <td>{lead.country.value}</td>
                     <td></td>

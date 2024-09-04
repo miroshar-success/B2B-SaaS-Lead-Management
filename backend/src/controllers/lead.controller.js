@@ -199,6 +199,7 @@ exports.findAll = async (req, res) => {
       skip: (parseInt(page) - 1) * parseInt(limit),
       limit: parseInt(limit),
       sort: { [sortBy]: order === "asc" ? 1 : -1 },
+      select: "-email -phone",
     };
 
     const leads = await Lead.find(searchConditions, null, options).populate(
@@ -261,13 +262,16 @@ exports.findOne = async (req, res) => {
   const id = req.params.id;
 
   try {
-    const lead = await Lead.findById(id);
+    const lead = await Lead.findById(id)
+      .select("-email -phone")
+      .populate("companyID");
 
     if (!lead) {
       return res.status(404).send({ message: "Lead not found with id " + id });
     }
     res.send(lead);
   } catch (err) {
+    console.log(err);
     res.status(500).send({ message: "Error retrieving Lead with id=" + id });
   }
 };

@@ -5,6 +5,7 @@ import Pagination from "../../components/Pagination";
 import { Lead } from "./Leads";
 import { useEffect, useState } from "react";
 import { axiosInstance } from "../../context/Auth";
+import { linkedInLink } from "../../utils/utils";
 
 interface Field {
   value: string;
@@ -67,7 +68,7 @@ function Company() {
     try {
       if (!company) return;
       const response = await axiosInstance.get(
-        `/leads/linkedin/${company.linkedInUrl.value}`,
+        `/leads/linkedin/${company.linkedInUrl?.value}`,
         {
           params: {
             page: currentPage,
@@ -92,55 +93,60 @@ function Company() {
         <div className="flex gap-5 items-center">
           <img className="h-12 w-12 rounded-md bg-black" alt="Company logo" />
           <div className="flex flex-col gap-2">
-            <div className="text-lg font-semibold">{company?.name.value}</div>
+            <div className="text-xl capitalize font-semibold mb-3">
+              {company?.name?.value}
+            </div>
+
+            <div className="flex gap-3">
+              {company?.facebook?.value && (
+                <Link
+                  to={company.facebook?.value}
+                  aria-label="Facebook"
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  <FaFacebookF />
+                </Link>
+              )}
+              {company?.linkedInUrl?.value && (
+                <Link
+                  to={linkedInLink(company.linkedInUrl?.value)}
+                  aria-label="LinkedIn"
+                  className="text-blue-700 hover:text-blue-900"
+                >
+                  <FaLinkedinIn />
+                </Link>
+              )}
+              {company?.twitter?.value && (
+                <Link
+                  to={company.twitter?.value}
+                  aria-label="Twitter"
+                  className="text-blue-400 hover:text-blue-600"
+                >
+                  <FaTwitter />
+                </Link>
+              )}
+              <div className="text-blue-600 hover:text-blue-600">
+                <FaPhone /> {company?.phone.value}
+              </div>
+            </div>
             <div className="text-gray-600 text-sm">
-              {company?.industry.value} • {company?.address.value} •{" "}
-              {company?.employees.value} employees • $
-              {company?.annualRevenue.value} revenue
+              {company?.industry?.value} • {company?.address.value} •{" "}
+              {company?.employees?.value} employees
             </div>
           </div>
-        </div>
-        <div className="flex gap-3">
-          {company?.facebook.value && (
-            <Link
-              to={company.facebook.value}
-              aria-label="Facebook"
-              className="text-blue-600 hover:text-blue-800"
-            >
-              <FaFacebookF />
-            </Link>
-          )}
-          {company?.linkedInUrl.value && (
-            <Link
-              to={company.linkedInUrl.value}
-              aria-label="LinkedIn"
-              className="text-blue-700 hover:text-blue-900"
-            >
-              <FaLinkedinIn />
-            </Link>
-          )}
-          {company?.twitter.value && (
-            <Link
-              to={company.twitter.value}
-              aria-label="Twitter"
-              className="text-blue-400 hover:text-blue-600"
-            >
-              <FaTwitter />
-            </Link>
-          )}
         </div>
       </div>
       <div className="bg-gray-100 w-full">
         <div className="container mx-auto p-4 md:p-8 grid gap-5 md:grid-cols-3">
-          <div className="bg-white p-4 rounded-md shadow-md">
+          <div className="bg-white p-4 rounded-md shadow-md col-span-3">
             <div className="flex items-center justify-between mb-4">
               <div className="font-semibold text-xl">Company Overview</div>
-              <button className="bg-gray-200 p-2 rounded-md hover:bg-gray-300">
+              {/* <button className="bg-gray-200 p-2 rounded-md hover:bg-gray-300">
                 <FaSortUp />
-              </button>
+              </button> */}
             </div>
             <div className="text-gray-700 mb-4">
-              {company?.seoDescription.value}
+              {company?.seoDescription?.value}
             </div>
             <table className="w-full border-separate border-spacing-4">
               <thead>
@@ -154,7 +160,7 @@ function Company() {
                   <td className="text-gray-600">Keywords</td>
                   <td>
                     <div className="flex items-center flex-wrap gap-2">
-                      {["virtual", "reality"].map((word, index) => (
+                      {company?.keywords.value.split(",").map((word, index) => (
                         <div
                           key={index}
                           className="p-1 text-sm px-2 rounded-md bg-gray-200"
@@ -173,31 +179,15 @@ function Company() {
                       className="flex items-center gap-2 text-blue-500 hover:underline"
                     >
                       <FaPhone size={12} />
-                      {company?.phone.value}
+                      {company?.phone?.value}
                     </Link>
                   </td>
-                </tr>
-                <tr>
-                  <td className="text-gray-600">Trading</td>
-                  <td>NASDAQ: LCID</td>
-                </tr>
-                <tr>
-                  <td className="text-gray-600">Market Cap</td>
-                  <td>$X billion</td>
-                </tr>
-                <tr>
-                  <td className="text-gray-600">Annual Revenue</td>
-                  <td>{company?.annualRevenue.value}</td>
-                </tr>
-                <tr>
-                  <td className="text-gray-600">Founding Year</td>
-                  <td>2006</td>
                 </tr>
                 <tr>
                   <td className="text-gray-600">Industry</td>
                   <td>
                     <div className="flex items-center flex-wrap gap-2">
-                      {["automotive"].map((word, index) => (
+                      {company?.industry.value.split(",").map((word, index) => (
                         <div
                           key={index}
                           className="p-1 text-sm px-2 rounded-md bg-gray-200"
@@ -208,10 +198,30 @@ function Company() {
                     </div>
                   </td>
                 </tr>
+                <tr>
+                  <td className="text-gray-600">Address</td>
+                  <td>
+                    {company?.address.value} {company?.city.value}{" "}
+                    {company?.country.value}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="text-gray-600">Website</td>
+                  <td>
+                    {" "}
+                    <Link
+                      to={`https://${company?.website?.value}`}
+                      aria-label="LinkedIn"
+                      className=""
+                    >
+                      {company?.website.value}
+                    </Link>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
-          <div className="bg-white md:col-span-2 p-4 rounded-md shadow-md">
+          <div className="hidden bg-white md:col-span-2 p-4 rounded-md shadow-md">
             <div className="flex items-center justify-between mb-4">
               <div className="font-semibold text-xl">New Prospects</div>
               <button className="bg-gray-200 p-2 rounded-md hover:bg-gray-300">
@@ -259,15 +269,15 @@ function Company() {
                           className={`whitespace-nowrap text-blue-400`}
                           to={`/lead/${lead._id}`}
                         >
-                          {lead.firstName.value + " " + lead.lastName.value}
+                          {lead.firstName?.value + " " + lead.lastName?.value}
                         </Link>
                       </td>
                       <td></td>
                       <td>{lead?.company?.value}</td>
-                      <td>{lead.email.value}</td>
+                      <td>{lead.email?.value}</td>
                       <td>
                         <Link
-                          to={lead.linkedInUrl.value}
+                          to={lead.linkedInUrl?.value}
                           target="_blank"
                           rel="noopener noreferrer"
                         >

@@ -10,6 +10,18 @@ const UserSchema = new mongoose.Schema(
     },
     emailCredit: { type: Number, default: 0 },
     phoneCredit: { type: Number, default: 0 },
+    phoneAccessed: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Lead",
+      },
+    ],
+    emailAccessed: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Lead",
+      },
+    ],
     role: {
       type: String,
       enum: ["user", "admin", "super_admin"],

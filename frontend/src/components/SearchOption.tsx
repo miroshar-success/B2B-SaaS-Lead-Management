@@ -116,6 +116,7 @@ const SearchOption: React.FC<SearchOptionProps> = ({
   const handleOptionClick = (option: string) => {
     setSearchValue(""); // Clear search input
     setOptions(allOptions); // Reset to show all options
+    setIsDropdownOpen(false);
 
     const updatedOptions = selectedOptions.includes(option)
       ? selectedOptions.filter((o) => o !== option)
@@ -142,6 +143,15 @@ const SearchOption: React.FC<SearchOptionProps> = ({
     }
   };
 
+  const removeOption = (option: string) => {
+    const updatedOptions = selectedOptions.filter((o) => o !== option);
+    handleFilterChange(
+      filterKey + ".value",
+      exclude ? "exclude" : "include",
+      updatedOptions.join(",")
+    );
+  };
+
   return (
     <div className="relative mb-2">
       {exclude && (
@@ -166,7 +176,12 @@ const SearchOption: React.FC<SearchOptionProps> = ({
             {selectedOptions.length > 0 && (
               <div className="flex flex-wrap p-1 gap-1">
                 {selectedOptions.map((value) => (
-                  <div className="text-xs bg-gray-100 p-0.5 px-1">{value}</div>
+                  <div
+                    onClick={() => removeOption(value)}
+                    className="text-xs bg-gray-100 p-0.5 px-1"
+                  >
+                    {value}
+                  </div>
                 ))}
               </div>
             )}

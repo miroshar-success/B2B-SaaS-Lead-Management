@@ -9,12 +9,21 @@ const sanitizeValue = (value) => {
   });
 };
 
-const calculateTrustScore = (date) => {
-  const today = new Date();
-  const lastUpdateDate = new Date(date);
-  const timeDiff = Math.abs(today - lastUpdateDate);
-  const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-  return Math.max(0, 100 - daysDiff);
+const isValidLinkedInUrl = (url) => {
+  // Validate LinkedIn URL with a regular expression pattern
+  const pattern =
+    /^(https?:\/\/)?(www\.)?linkedin\.com\/(in\/|company\/)?[a-zA-Z0-9-]+\/?$|^[a-zA-Z0-9-]+$/;
+  return pattern.test(url);
+};
+
+const normalizeLinkedInUrl = (url) => {
+  if (!isValidLinkedInUrl(url)) {
+    return ""; // Return an empty string if the URL is not valid
+  }
+  const normalizedUrl = url
+    .replace(/^https?:\/\/(www\.)?linkedin\.com\/(in|company)\/?/, "") // Remove LinkedIn base URL
+    .replace(/\/$/, ""); // Remove trailing slash if present
+  return normalizedUrl;
 };
 
 const processCSVData = async (csvData, fieldMappings) => {
@@ -27,79 +36,95 @@ const processCSVData = async (csvData, fieldMappings) => {
 
   // Prepare company data and bulk operations
   for (const row of csvData) {
-    const companyData = {
-      name: {
-        value: sanitizeValue(row[fieldMappings["Company Name"]]),
-        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
-      },
-      linkedInUrl: {
-        value: sanitizeValue(row[fieldMappings["Company Linkedin Url"]]),
-        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
-      },
-      address: {
-        value: sanitizeValue(row[fieldMappings["Address"]]),
-        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
-      },
-      website: {
-        value: sanitizeValue(row[fieldMappings["Company Website"]]),
-        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
-      },
-      phone: {
-        value: sanitizeValue(row[fieldMappings["Phone"]])
-          .split(",")
-          .map((phone) => phone.trim()),
-        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
-      },
-      employees: {
-        value: sanitizeValue(row[fieldMappings["Employees"]]),
-        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
-      },
-      industry: {
-        value: sanitizeValue(row[fieldMappings["Industry"]]),
-        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
-      },
-      keywords: {
-        value: sanitizeValue(row[fieldMappings["Keywords"]]),
-        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
-      },
-      facebook: {
-        value: sanitizeValue(row[fieldMappings["Facebook"]]),
-        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
-      },
-      twitter: {
-        value: sanitizeValue(row[fieldMappings["Twitter"]]),
-        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
-      },
-      city: {
-        value: sanitizeValue(row[fieldMappings["City"]]),
-        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
-      },
-      state: {
-        value: sanitizeValue(row[fieldMappings["State"]]),
-        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
-      },
-      country: {
-        value: sanitizeValue(row[fieldMappings["Country"]]),
-        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
-      },
-      seoDescription: {
-        value: sanitizeValue(row[fieldMappings["SEO Description"]]),
-        lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
-      },
-    };
+    const companyLinkedInUrl = sanitizeValue(
+      row[fieldMappings["Company Linkedin Url"]]
+    );
+    const normalizedCompanyLinkedInUrl =
+      normalizeLinkedInUrl(companyLinkedInUrl);
+    if (normalizedCompanyLinkedInUrl) {
+      const companyData = {
+        name: {
+          value: sanitizeValue(row[fieldMappings["Company Name"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        linkedInUrl: {
+          value: normalizedCompanyLinkedInUrl,
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        address: {
+          value: sanitizeValue(row[fieldMappings["Address"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        website: {
+          value: sanitizeValue(row[fieldMappings["Company Website"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        phone: {
+          value: sanitizeValue(row[fieldMappings["Phone"]])
+            .split(",")
+            .map((phone) => phone.trim()),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        employees: {
+          value: sanitizeValue(row[fieldMappings["Employees"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        industry: {
+          value: sanitizeValue(row[fieldMappings["Industry"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        keywords: {
+          value: sanitizeValue(row[fieldMappings["Keywords"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        facebook: {
+          value: sanitizeValue(row[fieldMappings["Facebook"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        twitter: {
+          value: sanitizeValue(row[fieldMappings["Twitter"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        city: {
+          value: sanitizeValue(row[fieldMappings["City"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        state: {
+          value: sanitizeValue(row[fieldMappings["State"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        country: {
+          value: sanitizeValue(row[fieldMappings["Country"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        seoDescription: {
+          value: sanitizeValue(row[fieldMappings["SEO Description"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+      };
 
-    const companyFilter = {
-      "linkedInUrl.value": companyData.linkedInUrl.value,
-    };
-    const companyUpdate = { $set: companyData };
-    companyBulkOperations.push({
-      updateOne: {
-        filter: companyFilter,
-        update: companyUpdate,
-        upsert: true,
-      },
-    });
-    companyResults.push({ ...companyData, status: "created/updated" });
+      const companyFilter = {
+        "linkedInUrl.value": companyData.linkedInUrl.value,
+      };
+      const companyUpdate = { $set: companyData };
+      companyBulkOperations.push({
+        updateOne: {
+          filter: companyFilter,
+          update: companyUpdate,
+          upsert: true,
+        },
+      });
+      companyResults.push({ ...companyData, status: "created/updated" });
+    } else {
+      companyResults.push({
+        linkedInUrl: {
+          value: companyLinkedInUrl,
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        status: "error",
+        reason: "Invalid LinkedIn URL",
+      });
+    }
   }
 
   try {
@@ -127,9 +152,18 @@ const processCSVData = async (csvData, fieldMappings) => {
     const batch = csvData.slice(i, i + BATCH_SIZE);
 
     for (const row of batch) {
+      const leadLinkedInUrl = sanitizeValue(row[fieldMappings["LinkedIn UrL"]]);
+      const normalizedLeadLinkedInUrl = normalizeLinkedInUrl(leadLinkedInUrl);
+
+      const companyLinkedInUrl = sanitizeValue(
+        row[fieldMappings["Company Linkedin Url"]]
+      );
+      const normalizedCompanyLinkedInUrl =
+        normalizeLinkedInUrl(companyLinkedInUrl);
+
       const leadData = {
         linkedInUrl: {
-          value: sanitizeValue(row[fieldMappings["LinkedIn UrL"]]),
+          value: normalizedLeadLinkedInUrl,
           lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
         firstName: {
@@ -154,6 +188,10 @@ const processCSVData = async (csvData, fieldMappings) => {
         },
         jobTitle: {
           value: sanitizeValue(row[fieldMappings["Job Title"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        industry: {
+          value: sanitizeValue(row[fieldMappings["Industry"]]),
           lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
         level: {
@@ -184,10 +222,11 @@ const processCSVData = async (csvData, fieldMappings) => {
           value: sanitizeValue(row[fieldMappings["Twitter"]]),
           lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
         },
-        companyID:
-          companyMap.get(
-            sanitizeValue(row[fieldMappings["Company Linkedin Url"]])
-          ) || "",
+        gender: {
+          value: sanitizeValue(row[fieldMappings["Gender"]]),
+          lastUpdated: sanitizeValue(row[fieldMappings["Last Updated"]]),
+        },
+        companyID: companyMap.get(normalizedCompanyLinkedInUrl) || "",
         isComplete: !!row[fieldMappings["LinkedIn UrL"]],
       };
 

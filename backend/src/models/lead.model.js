@@ -40,6 +40,7 @@ const LeadSchema = new mongoose.Schema(
     // firstPhone: FieldSchema,
     // title: FieldSchema,
     jobTitle: FieldSchema,
+    industry: FieldSchema,
     level: FieldSchema,
     departments: FieldSchema,
     // workPhone: FieldSchema,

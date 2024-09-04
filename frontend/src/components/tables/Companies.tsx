@@ -15,6 +15,7 @@ import Filter from "../Filter";
 import { Link } from "react-router-dom";
 import Pagination from "../Pagination";
 import Loading from "../Loading";
+import { linkedInLink } from "../../utils/utils";
 
 export interface Company {
   _id: string;
@@ -279,7 +280,10 @@ const Companies: React.FC = () => {
                           )}
                           {company.linkedInUrl.value && (
                             <Link
-                              to={`https://${company?.linkedInUrl?.value}`}
+                              to={linkedInLink(
+                                company?.linkedInUrl?.value,
+                                true
+                              )}
                               aria-label="LinkedIn"
                               className="text-blue-700 hover:text-blue-900"
                             >

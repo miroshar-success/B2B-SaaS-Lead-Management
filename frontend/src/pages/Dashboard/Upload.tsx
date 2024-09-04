@@ -12,6 +12,8 @@ const leadFields = [
   "Last Name",
   "Email",
   "Phone",
+  "Gender",
+  "Industry",
   // "Title",
   "Job Title",
   "Management  Level",

@@ -1,6 +1,8 @@
 const User = require("../models/user.model");
+const Lead = require("../models/lead.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const Transaction = require("../models/transaction.model");
 
 // Create and save a new user
 exports.create = async (req, res) => {
@@ -173,5 +175,139 @@ exports.validate = async (req, res) => {
     });
   } catch (err) {
     res.status(400).send({ message: "Invalid token." });
+  }
+};
+
+// Function to access multiple emails
+exports.accessEmails = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { leadIds } = req.body; // Expecting an array of lead IDs
+
+    // Find the user
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const emails = [];
+    let emailsAccessed = user.emailAccessed.map((id) => id.toString());
+    let emailsToAccess = [];
+    let totalCost = 0;
+
+    // Iterate over each lead ID
+    for (const leadId of leadIds) {
+      const lead = await Lead.findById(leadId);
+
+      if (!lead) {
+        return res
+          .status(404)
+          .json({ message: `Lead not found for ID: ${leadId}` });
+      }
+
+      // If the email for this lead has already been accessed, return it without cost
+      if (emailsAccessed.includes(leadId)) {
+        emails.push({ leadId, email: lead.email.value });
+      } else {
+        if (user.emailCredit > 0) {
+          emails.push({ leadId, email: lead.email.value });
+          emailsToAccess.push(leadId);
+          user.emailCredit -= 1;
+          totalCost += 1;
+        } else {
+          return res.status(400).json({ message: "Not enough email credits" });
+        }
+      }
+    }
+
+    if (totalCost > 0) {
+      const transaction = new Transaction({
+        userId,
+        type: "Email",
+        meta: {
+          leadIds: leadIds,
+        },
+        amount: totalCost,
+        status: "Completed",
+      });
+      await transaction.save();
+    }
+
+    // Update accessed emails and save the user
+    user.emailAccessed.push(...emailsToAccess);
+    await user.save();
+
+    res.json({ emails });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Function to access multiple phones
+exports.accessPhones = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { leadIds } = req.body; // Expecting an array of lead IDs
+
+    // Find the user
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const phones = [];
+    let phonesAccessed = user.phoneAccessed.map((id) => id.toString());
+    let phonesToAccess = [];
+    let totalCost = 0;
+
+    // Iterate over each lead ID
+    for (const leadId of leadIds) {
+      const lead = await Lead.findById(leadId);
+
+      if (!lead) {
+        return res
+          .status(404)
+          .json({ message: `Lead not found for ID: ${leadId}` });
+      }
+
+      // If the phone for this lead has already been accessed, return it without cost
+      if (phonesAccessed.includes(leadId)) {
+        phones.push({ leadId, phone: lead.phone.value });
+      } else {
+        if (user.phoneCredit > 0) {
+          phones.push({ leadId, phone: lead.phone.value });
+          phonesToAccess.push(leadId);
+          user.phoneCredit -= 1;
+          totalCost += 1;
+        } else {
+          return res.status(400).json({ message: "Not enough phone credits" });
+        }
+      }
+    }
+
+    if (totalCost > 0) {
+      const transaction = new Transaction({
+        userId,
+        type: "Phone",
+        meta: {
+          leadIds: leadIds,
+        },
+        amount: totalCost,
+        status: "Completed",
+      });
+      await transaction.save();
+    }
+
+    // Update accessed phones and save the user
+    user.phoneAccessed.push(...phonesToAccess);
+    await user.save();
+
+    res.json({ phones });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 };
