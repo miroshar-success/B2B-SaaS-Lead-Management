@@ -16,7 +16,7 @@ const transactionSchema = new Schema(
       enum: ["Deposit", "Withdrawal", "Email", "Phone"],
       required: true,
     },
-    meta: { leadIds: { type: mongoose.Schema.Types.ObjectId, ref: "Lead" } },
+    meta: { leadIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Lead" }] },
   },
   {
     timestamps: true,

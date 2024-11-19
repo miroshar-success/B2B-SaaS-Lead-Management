@@ -6,3 +6,13 @@ export const linkedInLink = (normalizedValue: string, isCompany = false) => {
 
   return fullLinkedInURL;
 };
+
+export const getFaviconUrl = (url: string) => {
+  try {
+    const domain = new URL(url).origin;
+    return `${domain}/favicon.ico`;
+  } catch (error) {
+    console.error("Invalid URL:", url);
+    return "";
+  }
+};

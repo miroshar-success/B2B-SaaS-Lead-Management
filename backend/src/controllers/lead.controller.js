@@ -1,6 +1,8 @@
 const Company = require("../models/company.model");
 const Lead = require("../models/lead.model");
+const Transaction = require("../models/transaction.model");
 const moment = require("moment");
+const User = require("../models/user.model");
 
 const escapeRegExp = (string) => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // Escape special characters for use in a regex
@@ -141,7 +143,7 @@ exports.findAll = async (req, res) => {
         { "twitter.value": searchRegex },
       ],
     };
-
+    searchConditions["linkedInUrl.value"] = { $exists: true, $ne: null };
     // Apply filter conditions for each field with include, exclude, isKnown, and isNotKnown values
     for (const [key, filterValues] of Object.entries(parsedFilter)) {
       const { include = "", exclude = "", isKnown, isNotKnown } = filterValues;
@@ -451,6 +453,223 @@ exports.searchLeads = async (req, res) => {
   } catch (error) {
     console.error("Error searching leads:", error);
     res.status(500).json({ error: "An error occurred while searching leads." });
+  }
+};
+
+exports.bulkExportLeads = async (req, res) => {
+  try {
+    const { leadIds } = req.body;
+    const userId = req.user.id;
+
+    // Find the user and check access
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
+    const emailsAccessed = user.emailAccessed.map((id) => id.toString());
+    const phonesAccessed = user.phoneAccessed.map((id) => id.toString());
+    let totalEmailCost = 0;
+    let totalPhoneCost = 0;
+
+    // Fetch the selected leads
+    const leads = await Lead.find({ _id: { $in: leadIds } }).populate(
+      "companyID"
+    );
+
+    // Process each lead according to user permissions
+    const exportedLeads = leads.map((lead) => {
+      const leadData = {
+        firstName: lead.firstName?.value,
+        lastName: lead.lastName?.value,
+        linkedInUrl: lead.linkedInUrl?.value,
+        jobTitle: lead.jobTitle?.value,
+        company: lead.companyID?.name?.value || null,
+        city: lead.city?.value,
+        state: lead.state?.value,
+        country: lead.country?.value,
+      };
+
+      // Check and charge for email access
+      if (emailsAccessed.includes(lead._id.toString())) {
+        leadData.email = lead.email?.value;
+      } else if (user.emailCredit > 0) {
+        leadData.email = lead.email?.value;
+        user.emailAccessed.push(lead._id);
+        user.emailCredit -= 1;
+        totalEmailCost += 1;
+      }
+
+      // Check and charge for phone access
+      if (phonesAccessed.includes(lead._id.toString())) {
+        leadData.phone = lead.phone?.value;
+      } else if (user.phoneCredit > 0) {
+        leadData.phone = lead.phone?.value;
+        user.phoneAccessed.push(lead._id);
+        user.phoneCredit -= 1;
+        totalPhoneCost += 1;
+      }
+
+      return leadData;
+    });
+
+    // Step 5: Record transactions if any charges were made
+    const transactions = [];
+    if (totalEmailCost > 0) {
+      transactions.push(
+        new Transaction({
+          userId,
+          type: "Email",
+          meta: { leadIds: exportedLeads.map((l) => l._id) },
+          amount: totalEmailCost,
+          status: "Completed",
+        })
+      );
+    }
+
+    if (totalPhoneCost > 0) {
+      transactions.push(
+        new Transaction({
+          userId,
+          type: "Phone",
+          meta: { leadIds: exportedLeads.map((l) => l._id) },
+          amount: totalPhoneCost,
+          status: "Completed",
+        })
+      );
+    }
+
+    // Save transactions and update the user
+    await Promise.all(transactions.map((tx) => tx.save()));
+    await user.save();
+
+    // Send the exported leads data
+    res.send({ leads: exportedLeads });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Error exporting leads" });
+  }
+};
+
+exports.fetchRandomLeads = async (req, res) => {
+  try {
+    const { count } = req.body; // Number of leads to fetch
+    const userId = req.user.id;
+
+    // Find the user and check access
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
+    const emailsAccessed = user.emailAccessed.map((id) => id.toString());
+    const phonesAccessed = user.phoneAccessed.map((id) => id.toString());
+    let totalEmailCost = 0;
+    let totalPhoneCost = 0;
+
+    // Step 1: Fetch already paid leads
+    const paidLeads = await Lead.find({
+      _id: { $in: [...emailsAccessed, ...phonesAccessed] },
+    })
+      .populate("companyID")
+      .limit(count);
+
+    // Step 2: Calculate remaining leads needed
+    const remainingCount = count - paidLeads.length;
+
+    // Step 3: Fetch random leads (not already paid)
+    let randomLeads = [];
+    if (remainingCount > 0) {
+      randomLeads = await Lead.aggregate([
+        {
+          $match: {
+            _id: {
+              $nin: [...emailsAccessed, ...phonesAccessed],
+            },
+          },
+        },
+        { $sample: { size: remainingCount } },
+      ]);
+    }
+
+    // Combine leads
+    const allLeads = [...paidLeads, ...randomLeads];
+
+    // Step 4: Process leads with user permissions and charge for access
+    const exportedLeads = [];
+
+    for (const lead of allLeads) {
+      const leadData = {
+        _id: lead._id,
+        firstName: lead.firstName?.value,
+        lastName: lead.lastName?.value,
+        linkedInUrl: lead.linkedInUrl?.value,
+        jobTitle: lead.jobTitle?.value,
+        company: lead.companyID?.name?.value || null,
+        city: lead.city?.value,
+        state: lead.state?.value,
+        country: lead.country?.value,
+      };
+
+      // Check and charge for email access
+      if (emailsAccessed.includes(lead._id.toString())) {
+        leadData.email = lead.email?.value;
+      } else if (user.emailCredit > 0) {
+        leadData.email = lead.email?.value;
+        user.emailAccessed.push(lead._id);
+        user.emailCredit -= 1;
+        totalEmailCost += 1;
+      }
+
+      // Check and charge for phone access
+      if (phonesAccessed.includes(lead._id.toString())) {
+        leadData.phone = lead.phone?.value;
+      } else if (user.phoneCredit > 0) {
+        leadData.phone = lead.phone?.value;
+        user.phoneAccessed.push(lead._id);
+        user.phoneCredit -= 1;
+        totalPhoneCost += 1;
+      }
+
+      exportedLeads.push(leadData);
+    }
+    // Step 5: Record transactions if any charges were made
+    const transactions = [];
+    if (totalEmailCost > 0) {
+      transactions.push(
+        new Transaction({
+          userId,
+          type: "Email",
+          meta: { leadIds: exportedLeads.map((l) => l._id) },
+          amount: totalEmailCost,
+          status: "Completed",
+        })
+      );
+    }
+
+    if (totalPhoneCost > 0) {
+      transactions.push(
+        new Transaction({
+          userId,
+          type: "Phone",
+          meta: { leadIds: exportedLeads.map((l) => l._id) },
+          amount: totalPhoneCost,
+          status: "Completed",
+        })
+      );
+    }
+
+    // Save transactions and update the user
+    await Promise.all(transactions.map((tx) => tx.save()));
+    await user.save();
+
+    // Step 6: Send the exported leads data
+    res.send({ leads: exportedLeads });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Error fetching leads" });
   }
 };
 

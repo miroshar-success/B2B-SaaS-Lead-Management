@@ -24,18 +24,18 @@ const Leads: React.FC = () => {
         <div className="text-xl md:text-3xl font-bold mb-4">Search</div>
         <div className="flex gap-5">
           <div
-            className={`${
+            className={`cursor-pointer${
               tab === "People" &&
-              "font-medium border-b-2 pb-2 cursor-pointer border-primary  "
+              "font-medium border-b-2 pb-2  border-primary  "
             }`}
             onClick={() => setTab("People")}
           >
             People
           </div>
           <div
-            className={`${
+            className={`cursor-pointer${
               tab === "Companies" &&
-              "font-medium border-b-2 pb-2 cursor-pointer border-primary  "
+              "font-medium border-b-2 pb-2  border-primary  "
             }`}
             onClick={() => setTab("Companies")}
           >

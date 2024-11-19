@@ -16,6 +16,7 @@ import { Link } from "react-router-dom";
 import Pagination from "../Pagination";
 import Loading from "../Loading";
 import { linkedInLink } from "../../utils/utils";
+import FaviconImage from "../FaviconImage";
 
 export interface Company {
   _id: string;
@@ -260,7 +261,9 @@ const Companies: React.FC = () => {
                   <tr key={index} className="border p-2">
                     <td className="font-medium max-w-60 overflow-hidden  capitalize p-2 border-r-2 flex items-start sticky left-0 bg-white">
                       <input type="checkbox" className="mr-2 mt-2" />
-                      <img src="" className="w-10 h-10 rounded-md mr-2" />
+                      <FaviconImage
+                        url={`https://${company?.website?.value}`}
+                      />
                       <div>
                         <Link
                           className={`whitespace-nowrap  text-primary`}
